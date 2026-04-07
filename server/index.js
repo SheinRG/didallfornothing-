@@ -1,3 +1,7 @@
+import dns from 'dns';
+dns.setDefaultResultOrder('ipv4first');
+dns.setServers(['8.8.8.8', '1.1.1.1']);
+
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -8,10 +12,24 @@ import authRoutes from './routes/auth.js';
 import sessionRoutes from './routes/sessions.js';
 import feedbackRoutes from './routes/feedback.js';
 
+import mongoose from 'mongoose';
+
 dotenv.config({ path: '../.env' });
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+const MONGODB_URI = process.env.MONGODB_URI;
+
+if (!MONGODB_URI) {
+  console.error('❌ MONGODB_URI is not defined in .env file');
+  process.exit(1);
+}
+
+// ── Database ────────────────────────────────────────────
+mongoose
+  .connect(MONGODB_URI)
+  .then(() => console.log('📁 Connected to MongoDB'))
+  .catch((err) => console.error('❌ MongoDB connection error:', err));
 
 // ── Security ────────────────────────────────────────────
 app.use(helmet());
@@ -35,9 +53,6 @@ app.get('/api/health', (_req, res) => {
 });
 
 // ── Start ───────────────────────────────────────────────
-// TODO: Add mongoose.connect() before listen when ready
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
 });
-
-// Ready for: mongoose.connect() and production error handling

@@ -27,6 +27,10 @@ const feedbackSchema = new mongoose.Schema({
     max: 10,
     default: 0,
   },
+  feedback: {
+    type: String,
+    default: '',
+  },
   modelAnswer: {
     type: String,
     default: '',

@@ -1,8 +1,6 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-
-// TODO: Import User model and use real DB operations when mongoose is connected
-// import User from '../models/User.js';
+import User from '../models/User.js';
 
 const COOKIE_OPTIONS = {
   httpOnly: true,
@@ -23,16 +21,13 @@ export const register = async (req, res) => {
       return res.status(400).json({ message: 'Name, email, and password are required' });
     }
 
-    // TODO: Check if user already exists in DB
-    // const existingUser = await User.findOne({ email });
-    // if (existingUser) return res.status(409).json({ message: 'Email already registered' });
+    const existingUser = await User.findOne({ email });
+    if (existingUser) return res.status(409).json({ message: 'Email already registered' });
 
     const salt = await bcrypt.genSalt(12);
     const passwordHash = await bcrypt.hash(password, salt);
 
-    // TODO: Save user to DB
-    // const user = await User.create({ name, email, passwordHash });
-    const user = { _id: 'mock_user_id', name, email }; // mock
+    const user = await User.create({ name, email, passwordHash });
 
     const token = jwt.sign(
       { userId: user._id, email: user.email },
@@ -46,6 +41,7 @@ export const register = async (req, res) => {
       user: { id: user._id, name: user.name, email: user.email },
     });
   } catch (err) {
+    console.error('Registration error:', err);
     res.status(500).json({ message: 'Server error during registration' });
   }
 };
@@ -62,14 +58,11 @@ export const login = async (req, res) => {
       return res.status(400).json({ message: 'Email and password are required' });
     }
 
-    // TODO: Find user in DB
-    // const user = await User.findOne({ email });
-    // if (!user) return res.status(401).json({ message: 'Invalid credentials' });
-    // const isMatch = await bcrypt.compare(password, user.passwordHash);
-    // if (!isMatch) return res.status(401).json({ message: 'Invalid credentials' });
+    const user = await User.findOne({ email });
+    if (!user) return res.status(401).json({ message: 'Invalid credentials' });
 
-    // Mock user for now
-    const user = { _id: 'mock_user_id', name: 'Demo User', email };
+    const isMatch = await bcrypt.compare(password, user.passwordHash);
+    if (!isMatch) return res.status(401).json({ message: 'Invalid credentials' });
 
     const token = jwt.sign(
       { userId: user._id, email: user.email },
@@ -83,6 +76,7 @@ export const login = async (req, res) => {
       user: { id: user._id, name: user.name, email: user.email },
     });
   } catch (err) {
+    console.error('Login error:', err);
     res.status(500).json({ message: 'Server error during login' });
   }
 };
@@ -96,4 +90,21 @@ export const logout = (_req, res) => {
   res.status(200).json({ message: 'Logged out successfully' });
 };
 
-// Ready for: real User model DB operations (find, create)
+/**
+ * GET /api/auth/me
+ * Return the current user from the JWT cookie.
+ */
+export const me = async (req, res) => {
+  try {
+    const token = req.cookies?.token;
+    if (!token) return res.status(401).json({ message: 'Not authenticated' });
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'dev-secret');
+    const user = await User.findById(decoded.userId).select('-passwordHash');
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    res.status(200).json({ user: { id: user._id, name: user.name, email: user.email } });
+  } catch (err) {
+    res.status(401).json({ message: 'Not authenticated' });
+  }
+};

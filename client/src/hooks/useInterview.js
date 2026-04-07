@@ -1,23 +1,43 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 
-const MOCK_QUESTIONS = [
-  'Tell me about a time you led a team through a difficult project.',
-  'How do you prioritise tasks when everything feels urgent?',
-  'Describe a situation where you had to learn something quickly.',
-  'Walk me through how you would design a notification system.',
-  'Give an example of a time you received tough feedback and how you handled it.',
-  'What is your approach to making decisions with incomplete information?',
-];
+const API_BASE_URL = 'http://localhost:5000/api';
 
 /**
- * useInterview — manages interview flow state.
- * Tracks current question index, collected answers, and completion.
+ * useInterview — manages interview flow state for a given sessionId.
+ * Fetches questions from /api/sessions/:id and tracks responses.
  */
-export default function useInterview() {
-  const [questions] = useState(MOCK_QUESTIONS);
+export default function useInterview(sessionId) {
+  const [questions, setQuestions] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState([]);
   const [isComplete, setIsComplete] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  // ── Fetch session questions ───────────────────────────
+  useEffect(() => {
+    if (!sessionId) return;
+
+    const fetchSession = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await fetch(`${API_BASE_URL}/sessions/${sessionId}`, {
+          credentials: 'include',
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || 'Failed to load session');
+        
+        setQuestions(data.session.questions || []);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSession();
+  }, [sessionId]);
 
   const currentQuestion = questions[currentIndex] || '';
   const totalQuestions = questions.length;
@@ -48,9 +68,9 @@ export default function useInterview() {
     totalQuestions,
     answers,
     isComplete,
+    loading,
+    error,
     nextQuestion,
     reset,
   };
 }
-
-// Ready for: real questions from Claude API via /api/sessions

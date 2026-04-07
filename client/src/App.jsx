@@ -21,6 +21,7 @@ function AnimatedRoutes() {
         <Route path="/onboarding" element={<OnboardingPage />} />
         <Route path="/interview" element={<InterviewPage />} />
         <Route path="/feedback/:sessionId" element={<FeedbackPage />} />
+        <Route path="/feedback" element={<FeedbackPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
       </Routes>
     </AnimatePresence>

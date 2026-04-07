@@ -50,7 +50,9 @@ export default function OnboardingPage() {
   const step = steps[currentStep];
   const progress = ((currentStep + 1) / steps.length) * 100;
 
-  const handleSelect = (value) => {
+  const [loading, setLoading] = useState(false);
+
+  const handleSelect = async (value) => {
     const keys = ['role', 'level', 'interviewType'];
     const updated = { ...selections, [keys[currentStep]]: value };
     setSelections(updated);
@@ -58,9 +60,25 @@ export default function OnboardingPage() {
     if (currentStep + 1 < steps.length) {
       setCurrentStep((prev) => prev + 1);
     } else {
-      // TODO: POST to /api/sessions with selections
-      console.log('Onboarding complete:', updated);
-      navigate('/interview');
+      setLoading(true);
+      try {
+        const response = await fetch('http://localhost:5000/api/sessions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(updated),
+        });
+
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || 'Onboarding failed');
+
+        navigate('/interview', { state: { sessionId: data.session._id } });
+      } catch (err) {
+        console.error('Onboarding session error:', err);
+        alert('Failed to start session. Please try again.');
+      } finally {
+        setLoading(false);
+      }
     }
   };
 

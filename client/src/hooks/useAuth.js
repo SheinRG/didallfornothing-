@@ -1,8 +1,10 @@
 import { useState, useCallback } from 'react';
 
+const API_BASE_URL = 'http://localhost:5000/api';
+
 /**
  * useAuth — authentication hook.
- * Returns mock responses until wired to real backend.
+ * Connects to the backend for real registration and login.
  */
 export default function useAuth() {
   const [user, setUser] = useState(null);
@@ -13,13 +15,20 @@ export default function useAuth() {
     setLoading(true);
     setError(null);
     try {
-      // TODO: Replace with fetch('/api/auth/login', { method: 'POST', ... })
-      await new Promise((r) => setTimeout(r, 500)); // simulate network
-      const mockUser = { id: 'mock_user_id', name: 'Demo User', email };
-      setUser(mockUser);
-      return mockUser;
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Login failed');
+
+      setUser(data.user);
+      return data.user;
     } catch (err) {
-      setError('Login failed');
+      setError(err.message);
       return null;
     } finally {
       setLoading(false);
@@ -30,13 +39,20 @@ export default function useAuth() {
     setLoading(true);
     setError(null);
     try {
-      // TODO: Replace with fetch('/api/auth/register', { method: 'POST', ... })
-      await new Promise((r) => setTimeout(r, 500));
-      const mockUser = { id: 'mock_user_id', name, email };
-      setUser(mockUser);
-      return mockUser;
+      const response = await fetch(`${API_BASE_URL}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ name, email, password }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Registration failed');
+
+      setUser(data.user);
+      return data.user;
     } catch (err) {
-      setError('Registration failed');
+      setError(err.message);
       return null;
     } finally {
       setLoading(false);
@@ -44,8 +60,15 @@ export default function useAuth() {
   }, []);
 
   const logout = useCallback(async () => {
-    // TODO: Replace with fetch('/api/auth/logout', { method: 'POST' })
-    setUser(null);
+    try {
+      await fetch(`${API_BASE_URL}/auth/logout`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+      setUser(null);
+    } catch (err) {
+      console.error('Logout error:', err);
+    }
   }, []);
 
   return { user, loading, error, login, register, logout };
