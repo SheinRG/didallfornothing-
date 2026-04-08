@@ -86,17 +86,17 @@ export default function OnboardingPage() {
     <PageWrapper className="flex flex-col items-center px-6 py-16">
       {/* ── Progress bar ──────────────────────────────── */}
       <div className="w-full max-w-md mb-12">
-        <div className="h-1.5 w-full rounded-full bg-surface-100 dark:bg-surface-800 overflow-hidden">
+        <div className="h-2 w-full rounded-full bg-[#1A1A1A] overflow-hidden border border-[#333]">
           <motion.div
-            className="h-full rounded-full bg-primary-600"
+            className="h-full rounded-full bg-gradient-to-r from-[#E8563B] to-[#C23C23]"
             layoutId="progress"
             initial={{ width: 0 }}
             animate={{ width: `${progress}%` }}
             transition={{ duration: 0.4, ease: 'easeOut' }}
           />
         </div>
-        <p className="text-xs text-surface-400 dark:text-surface-200 mt-2 text-right">
-          Step {currentStep + 1} of {steps.length}
+        <p className="text-[11px] font-bold tracking-[0.2em] text-[#888] mt-4 text-center">
+          INITIALIZATION STEP {currentStep + 1} OF {steps.length}
         </p>
       </div>
 
@@ -108,10 +108,10 @@ export default function OnboardingPage() {
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -40 }}
           transition={{ duration: 0.3, ease: 'easeOut' }}
-          className="w-full max-w-lg"
+          className="w-full max-w-2xl bg-[#111]/80 backdrop-blur-md border border-[#222] rounded-3xl p-10 shadow-2xl"
         >
-          <h2 className="text-xl font-medium text-surface-900 dark:text-surface-50 text-center mb-8">
-            {step.title}
+          <h2 className="text-3xl font-extrabold tracking-tight text-white text-center mb-8">
+            {step.title.toUpperCase()}
           </h2>
 
           <motion.div
@@ -127,15 +127,15 @@ export default function OnboardingPage() {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={() => handleSelect(option.value)}
-                className={`flex flex-col items-center gap-3 rounded-xl border p-6 transition-colors cursor-pointer ${
+                className={`flex flex-col items-center gap-4 rounded-2xl border p-8 transition-colors cursor-pointer ${
                   selections[['role', 'level', 'interviewType'][currentStep]] === option.value
-                    ? 'border-primary-600 bg-primary-50 dark:bg-primary-900/20 dark:border-primary-400'
-                    : 'border-primary-200/20 bg-white hover:border-primary-200/50 dark:bg-surface-800 dark:border-primary-200/10 dark:hover:border-primary-200/30'
+                    ? 'border-[#E8563B] bg-[#E8563B]/10 shadow-[0_0_15px_rgba(232,86,59,0.2)]'
+                    : 'border-[#333] bg-[#1a1a1a] hover:border-[#666]'
                 }`}
               >
-                <span className="text-3xl">{option.icon}</span>
-                <span className="text-sm font-medium text-surface-900 dark:text-surface-50">
-                  {option.label}
+                <span className="text-4xl drop-shadow-xl">{option.icon}</span>
+                <span className="text-sm font-bold tracking-wide text-white">
+                  {option.label.toUpperCase()}
                 </span>
               </motion.button>
             ))}

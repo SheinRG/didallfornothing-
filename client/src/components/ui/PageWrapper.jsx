@@ -14,7 +14,7 @@ export default function PageWrapper({ children, className = '' }) {
       animate="animate"
       exit="exit"
       transition={{ duration: 0.3, ease: 'easeOut' }}
-      className={`w-full min-h-screen ${className}`}
+      className={`w-full min-h-screen bg-orion-dark text-white font-sans overflow-x-hidden selection:bg-[#E8563B]/30 pt-28 pb-24 ${className}`}
     >
       {children}
     </motion.div>

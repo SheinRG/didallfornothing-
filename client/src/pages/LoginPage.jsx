@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import PageWrapper from '../components/ui/PageWrapper';
 import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
@@ -23,33 +24,40 @@ export default function LoginPage() {
   };
 
   return (
-    <PageWrapper className="flex items-center justify-center px-6 py-24">
-      <div className="w-full max-w-md">
-        <h1 className="text-2xl font-medium text-surface-900 dark:text-surface-50 mb-2">
-          Welcome back
-        </h1>
-        <p className="text-sm text-surface-400 dark:text-surface-200 mb-8">
-          Sign in to continue your interview practice.
-        </p>
+    <PageWrapper className="flex items-center justify-center px-6">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-md bg-[#111]/80 backdrop-blur-md border border-[#222] rounded-3xl p-10 shadow-2xl"
+      >
+        <div className="flex flex-col items-center mb-10 text-center">
+            <h1 className="text-3xl font-extrabold tracking-tight text-white mb-3">
+              System Access
+            </h1>
+            <p className="text-[#888] leading-relaxed">
+              Authenticate to initialize your executive interview simulation environment.
+            </p>
+        </div>
 
         {error && (
-          <div className="mb-4 p-3 text-sm text-red-500 bg-red-50 dark:bg-red-950/30 rounded-lg">
+          <div className="mb-6 p-4 text-sm text-red-400 bg-red-400/10 border border-red-400/20 rounded-xl">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-6">
           <Input
-            label="Email address"
+            label="Authorization Email"
             name="email"
             type="email"
-            placeholder="jane@example.com"
+            placeholder="operative@orion.com"
             required
             value={form.email}
             onChange={handleChange}
           />
           <Input
-            label="Password"
+            label="Passphrase"
             name="password"
             type="password"
             placeholder="••••••••"
@@ -57,18 +65,18 @@ export default function LoginPage() {
             value={form.password}
             onChange={handleChange}
           />
-          <Button type="submit" variant="primary" className="w-full mt-2" disabled={loading}>
-            {loading ? 'Signing in...' : 'Sign in'}
+          <Button type="submit" variant="primary" className="w-full mt-4" disabled={loading}>
+            {loading ? 'AUTHENTICATING...' : 'INITIALIZE CONNECTION'}
           </Button>
         </form>
 
-        <p className="text-sm text-surface-400 dark:text-surface-200 mt-6 text-center">
-          Don't have an account?{' '}
-          <Link to="/register" className="text-primary-600 dark:text-primary-400 hover:underline">
-            Create one
+        <p className="text-sm text-[#888] mt-8 text-center font-medium">
+          NOT REGISTERED YET?{' '}
+          <Link to="/register" className="text-[#E8563B] font-bold hover:underline transition-all">
+            REQUEST CLEARANCE
           </Link>
         </p>
-      </div>
+      </motion.div>
     </PageWrapper>
   );
 }

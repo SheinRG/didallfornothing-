@@ -63,32 +63,35 @@ export default function DashboardPage() {
   }
 
   return (
-    <PageWrapper className="px-6 py-16">
-      <div className="max-w-3xl mx-auto">
-        <h1 className="text-2xl font-medium text-surface-900 dark:text-surface-50 mb-1">
-          Welcome back, {userName} 👋
+    <PageWrapper className="px-6 flex items-start justify-center">
+      <div className="w-full max-w-4xl py-12">
+        <h1 className="text-4xl font-extrabold tracking-tight text-white mb-2">
+          OPERATIVE DASHBOARD
         </h1>
-        <p className="text-sm text-surface-400 dark:text-surface-200 mb-10">
-          Here are your recent interview sessions.
+        <p className="text-[#888] leading-relaxed mb-10 border-b border-[#222] pb-8">
+          Welcome back, {userName}. Review your past simulation data and initialize new scenarios.
         </p>
 
-        <div className="flex justify-end mb-6">
+        <div className="flex items-center justify-between mb-8">
+          <h2 className="text-xl font-bold text-white tracking-wide">SIMULATION HISTORY</h2>
           <Link to="/onboarding">
-            <Button variant="primary">New Session</Button>
+            <Button variant="primary">INITIALIZE SESSION</Button>
           </Link>
         </div>
 
         {sessions.length === 0 ? (
-          <Card className="flex flex-col items-center py-12">
-            <span className="text-4xl mb-4">🎯</span>
-            <h3 className="text-lg font-medium text-surface-900 dark:text-surface-50 mb-2">
-              No sessions yet
+          <Card className="flex flex-col items-center py-16">
+            <div className="w-16 h-16 rounded-full border border-[rgba(232,86,59,0.3)] bg-[#E8563B]/10 flex items-center justify-center mb-6">
+              <span className="text-[#E8563B] font-mono text-xl">00</span>
+            </div>
+            <h3 className="text-xl font-extrabold text-white mb-3">
+              NO ACTIVE DATA
             </h3>
-            <p className="text-sm text-surface-400 dark:text-surface-200 mb-6 text-center max-w-sm">
-              Start your first mock interview to see your history here.
+            <p className="text-[#888] mb-8 text-center max-w-sm leading-relaxed">
+              System awaits your first scenario initialization to begin telemetry collection.
             </p>
             <Link to="/onboarding">
-              <Button variant="primary">Start First Interview</Button>
+              <Button variant="primary">INITIALIZE FIRST SESSION</Button>
             </Link>
           </Card>
         ) : (
@@ -101,30 +104,33 @@ export default function DashboardPage() {
             {sessions.map((session) => (
               <motion.div key={session._id} variants={itemVariants}>
                 <Card className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                  <div className="flex flex-col gap-2">
-                    <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex flex-col gap-3">
+                    <div className="flex flex-wrap items-center gap-3">
                       <Badge variant="default">{roleLabels[session.role] || session.role}</Badge>
                       <Badge variant="success">{levelLabels[session.level] || session.level}</Badge>
                       <Badge variant="warning">{typeLabels[session.interviewType] || session.interviewType}</Badge>
                     </div>
-                    <p className="text-xs text-surface-400 dark:text-surface-200">
-                      {new Date(session.createdAt).toLocaleDateString('en-US', {
-                        month: 'long',
-                        day: 'numeric',
+                    <p className="text-[13px] tracking-widest text-[#666] font-mono">
+                      TIMESTAMP: {new Date(session.createdAt).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: '2-digit',
                         year: 'numeric',
-                      })}
+                      }).toUpperCase()}
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-6">
                     <div className="flex flex-col items-end">
-                      <span className="text-sm text-surface-400 dark:text-surface-200">
-                        {session.questions?.length || 0} questions
+                      <span className="text-[11px] font-bold tracking-[0.2em] text-[#888] mb-1">
+                        QUERIES
+                      </span>
+                      <span className="text-2xl font-black text-white leading-none">
+                        {session.questions?.length || 0}
                       </span>
                     </div>
                     <Link to={`/feedback/${session._id}`}>
-                      <Button variant="secondary" className="text-xs">
-                        View Feedback
+                      <Button variant="secondary" className="scale-90 origin-right">
+                        VIEW TELEMETRY
                       </Button>
                     </Link>
                   </div>

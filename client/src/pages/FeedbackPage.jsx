@@ -76,25 +76,25 @@ export default function FeedbackPage() {
 
   return (
     <PageWrapper className="flex flex-col items-center px-6 py-16">
-      <div className="w-full max-w-2xl">
-        <h1 className="text-2xl font-medium text-surface-900 dark:text-surface-50 mb-2">
-          Interview Feedback
+      <div className="w-full max-w-3xl">
+        <h1 className="text-4xl font-extrabold tracking-tight text-white mb-2 text-center uppercase">
+          PERFORMANCE TELEMETRY
         </h1>
-        <p className="text-sm text-surface-400 dark:text-surface-200 mb-10">
-          Here's how you performed — review each dimension below.
+        <p className="text-[#888] leading-relaxed mb-12 text-center border-b border-[#222] pb-8">
+          Review the structural and tonal analysis of your latest scenario.
         </p>
 
         {/* ── Overall score ────────────────────────────── */}
-        <div className="flex flex-col items-center mb-12">
-          <ScoreRing score={overallScore} label="Overall" size={120} />
-          <Badge variant="warning" className="mt-4">
-            {fillerWordCount} filler words
+        <div className="flex flex-col items-center mb-16">
+          <ScoreRing score={overallScore} label="Overall" size={140} />
+          <Badge variant="warning" className="mt-6">
+            {fillerWordCount} FILLER WORDS DETECTED
           </Badge>
         </div>
 
         {/* ── Score grid ───────────────────────────────── */}
         <motion.div
-          className="grid grid-cols-2 sm:grid-cols-4 gap-6 mb-12"
+          className="grid grid-cols-2 sm:grid-cols-4 gap-8 mb-16"
           variants={containerVariants}
           initial="initial"
           whileInView="animate"
@@ -102,34 +102,34 @@ export default function FeedbackPage() {
         >
           {scoreKeys.map((key, i) => (
             <motion.div key={key} variants={itemVariants} className="flex justify-center">
-              <ScoreRing score={scores[key]} label={scoreLabels[i]} size={90} />
+              <ScoreRing score={scores[key]} label={scoreLabels[i]} size={100} />
             </motion.div>
           ))}
         </motion.div>
 
         {/* ── Written feedback ─────────────────────────── */}
-        <Card className="mb-6">
-          <h3 className="text-sm font-medium text-surface-900 dark:text-surface-50 mb-3">
-            Feedback
+        <Card className="mb-8">
+          <h3 className="text-[11px] font-bold tracking-[0.2em] text-[#888] mb-4">
+            STRUCTURAL FEEDBACK
           </h3>
-          <p className="text-sm text-surface-400 dark:text-surface-200 leading-relaxed">
+          <p className="text-[15px] text-white leading-relaxed">
             {feedback}
           </p>
         </Card>
 
         {/* ── Model answer accordion ───────────────────── */}
-        <Card className="mb-10">
+        <Card className="mb-12">
           <button
             onClick={() => setModelOpen((prev) => !prev)}
-            className="w-full flex items-center justify-between text-left"
+            className="w-full flex items-center justify-between text-left focus:outline-none"
           >
-            <h3 className="text-sm font-medium text-surface-900 dark:text-surface-50">
-              Model Answer
+            <h3 className="text-[11px] font-bold tracking-[0.2em] text-[#888]">
+              OPTIMAL EXECUTION LOGIC
             </h3>
             <motion.span
               animate={{ rotate: modelOpen ? 180 : 0 }}
               transition={{ duration: 0.2 }}
-              className="text-surface-400 dark:text-surface-200"
+              className="text-[#E8563B] font-bold"
             >
               ▼
             </motion.span>
@@ -144,7 +144,7 @@ export default function FeedbackPage() {
                 transition={{ duration: 0.3, ease: 'easeOut' }}
                 className="overflow-hidden"
               >
-                <p className="text-sm text-surface-400 dark:text-surface-200 leading-relaxed mt-4 pt-4 border-t border-primary-200/20 dark:border-primary-200/10">
+                <p className="text-[15px] font-mono text-[#ccc] leading-relaxed mt-6 pt-6 border-t border-[#333]">
                   {modelAnswer}
                 </p>
               </motion.div>
@@ -153,12 +153,12 @@ export default function FeedbackPage() {
         </Card>
 
         {/* ── Actions ──────────────────────────────────── */}
-        <div className="flex gap-4">
+        <div className="flex justify-center gap-6">
           <Link to="/onboarding">
-            <Button variant="primary">Practice Again</Button>
+            <Button variant="primary">INITIALIZE NEW SCENARIO</Button>
           </Link>
           <Link to="/dashboard">
-            <Button variant="secondary">Dashboard</Button>
+            <Button variant="secondary">RETURN TO DASHBOARD</Button>
           </Link>
         </div>
       </div>

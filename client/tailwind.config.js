@@ -8,6 +8,15 @@ export default {
         sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
       colors: {
+        orion: {
+          red: '#E22D1F',
+          darkRed: '#B8150D',
+          dark: '#0A0A0A',
+          card: '#141414',
+          border: '#282828',
+          text: '#FFFFFF',
+          muted: '#888888',
+        },
         primary: {
           50:  '#EEEDFE',
           100: '#CECBF6',

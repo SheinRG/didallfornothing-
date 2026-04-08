@@ -76,31 +76,34 @@ export default function InterviewPage() {
   return (
     <PageWrapper className="flex flex-col min-h-screen">
       {/* ── Top bar ───────────────────────────────────── */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-primary-200/20 dark:border-primary-200/10">
-        <span className="text-sm font-medium text-surface-400 dark:text-surface-200">
-          Q {currentIndex + 1} of {totalQuestions}
-        </span>
+      <div className="flex items-center justify-between px-6 py-5 border-b border-[#222] bg-[#111]/90 backdrop-blur-md">
+        <div className="flex items-center gap-2 border border-[#333] px-3 py-1.5 rounded-full bg-[#1A1A1A]">
+          <div className="w-2 h-2 rounded-full bg-[#E8563B] animate-pulse" />
+          <span className="text-[10px] font-bold tracking-[0.2em] text-[#aaa]">
+            QUESTION {currentIndex + 1} OF {totalQuestions}
+          </span>
+        </div>
       </div>
 
       {/* ── Main content ──────────────────────────────── */}
-      <div className="flex-1 flex flex-col items-center justify-center px-6 py-12 gap-10 max-w-2xl mx-auto w-full">
+      <div className="flex-1 flex flex-col items-center justify-center px-6 py-12 gap-12 max-w-3xl mx-auto w-full">
         <motion.p
           key={currentIndex}
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-xl font-medium text-surface-900 dark:text-surface-50 text-center leading-relaxed"
+          className="text-2xl sm:text-3xl font-extrabold text-white text-center leading-tight tracking-tight px-4"
         >
-          {currentQuestion}
+          "{currentQuestion}"
         </motion.p>
 
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={handleMicClick}
-          className={`w-20 h-20 rounded-full flex items-center justify-center transition-colors shadow-lg ${
+          className={`w-24 h-24 rounded-full flex flex-col items-center justify-center gap-1 transition-all shadow-2xl ${
             isListening
-              ? 'bg-red-500 scale-110 shadow-red-200/50'
-              : 'bg-primary-600 text-white hover:bg-primary-800'
+              ? 'bg-[#E8563B] text-white shadow-[0_0_40px_rgba(232,86,59,0.5)] scale-110'
+              : 'bg-[#1a1a1a] border border-[#333] text-[#888] hover:border-[#E8563B] hover:text-[#E8563B]'
           }`}
         >
           <svg
@@ -119,20 +122,23 @@ export default function InterviewPage() {
           </svg>
         </motion.button>
 
-        <div className="w-full">
-          <label className="text-xs font-medium text-surface-400 dark:text-surface-200 mb-2 block uppercase tracking-wider">
-            {isListening ? 'Listening...' : 'Your answer'}
-          </label>
+        <div className="w-full bg-[#111] p-6 rounded-3xl border border-[#222]">
+          <div className="flex items-center justify-between mb-4">
+             <label className="text-[11px] font-bold tracking-[0.2em] text-[#888]">
+               {isListening ? 'RECORDING TELEMETRY...' : 'TRANSCRIPT LOG'}
+             </label>
+             {isListening && <div className="text-[10px] text-[#E8563B] animate-pulse uppercase font-mono tracking-widest">Active</div>}
+          </div>
           <textarea
             readOnly
             value={transcript}
-            placeholder="Click the microphone and start speaking..."
-            className="w-full h-32 rounded-lg border border-primary-200/30 bg-surface-50 px-4 py-3 text-sm text-surface-900 resize-none focus:outline-none dark:bg-surface-800 dark:text-surface-50 dark:border-primary-200/20"
+            placeholder="Awaiting audio input..."
+            className="w-full h-32 bg-transparent text-[15px] font-medium text-white placeholder:text-[#444] resize-none focus:outline-none leading-relaxed"
           />
         </div>
 
         <Button variant="primary" onClick={handleNext} disabled={submitting}>
-          {submitting ? 'Generating Feedback...' : currentIndex + 1 < totalQuestions ? 'Next Question →' : 'Submit Interview'}
+          {submitting ? 'GENERATING ANALYSIS...' : currentIndex + 1 < totalQuestions ? 'NEXT QUESTION' : 'SUBMIT SIMULATION'}
         </Button>
       </div>
     </PageWrapper>

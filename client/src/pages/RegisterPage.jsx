@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import PageWrapper from '../components/ui/PageWrapper';
 import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
@@ -23,41 +24,48 @@ export default function RegisterPage() {
   };
 
   return (
-    <PageWrapper className="flex items-center justify-center px-6 py-24">
-      <div className="w-full max-w-md">
-        <h1 className="text-2xl font-medium text-surface-900 dark:text-surface-50 mb-2">
-          Create your account
-        </h1>
-        <p className="text-sm text-surface-400 dark:text-surface-200 mb-8">
-          Start practicing interviews with AI-powered coaching.
-        </p>
+    <PageWrapper className="flex items-center justify-center px-6">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-md bg-[#111]/80 backdrop-blur-md border border-[#222] rounded-3xl p-10 shadow-2xl"
+      >
+        <div className="flex flex-col items-center mb-10 text-center">
+            <h1 className="text-3xl font-extrabold tracking-tight text-white mb-3">
+              Request Clearance
+            </h1>
+            <p className="text-[#888] leading-relaxed">
+              Create an operative profile to start running advanced AI simulation scenarios.
+            </p>
+        </div>
 
         {error && (
-          <div className="mb-4 p-3 text-sm text-red-500 bg-red-50 dark:bg-red-950/30 rounded-lg">
+          <div className="mb-6 p-4 text-sm text-red-400 bg-red-400/10 border border-red-400/20 rounded-xl">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-6">
           <Input
-            label="Full name"
+            label="Operative Designation"
             name="name"
-            placeholder="Jane Doe"
+            placeholder="Marcus Vance"
             required
             value={form.name}
             onChange={handleChange}
           />
           <Input
-            label="Email address"
+            label="Authorization Email"
             name="email"
             type="email"
-            placeholder="jane@example.com"
+            placeholder="operative@orion.com"
             required
             value={form.email}
             onChange={handleChange}
           />
           <Input
-            label="Password"
+            label="Passphrase"
             name="password"
             type="password"
             placeholder="••••••••"
@@ -65,18 +73,18 @@ export default function RegisterPage() {
             value={form.password}
             onChange={handleChange}
           />
-          <Button type="submit" variant="primary" className="w-full mt-2" disabled={loading}>
-            {loading ? 'Creating account...' : 'Create account'}
+          <Button type="submit" variant="primary" className="w-full mt-4" disabled={loading}>
+            {loading ? 'PROCESSING...' : 'REQUEST ACCESS'}
           </Button>
         </form>
 
-        <p className="text-sm text-surface-400 dark:text-surface-200 mt-6 text-center">
-          Already have an account?{' '}
-          <Link to="/login" className="text-primary-600 dark:text-primary-400 hover:underline">
-            Sign in
+        <p className="text-sm text-[#888] mt-8 text-center font-medium">
+          ALREADY AUTHORIZED?{' '}
+          <Link to="/login" className="text-[#E8563B] font-bold hover:underline transition-all">
+            INITIALIZE CONNECTION
           </Link>
         </p>
-      </div>
+      </motion.div>
     </PageWrapper>
   );
 }

@@ -1,10 +1,10 @@
 const variants = {
   success:
-    'bg-accent-50 text-accent-600 border border-accent-200/30 dark:bg-accent-900/40 dark:text-accent-200 dark:border-accent-200/20',
+    'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
   warning:
-    'bg-warning-50 text-warning-600 border border-warning-200/30 dark:bg-warning-800/30 dark:text-warning-200 dark:border-warning-200/20',
+    'bg-amber-500/10 text-amber-400 border border-amber-500/20',
   default:
-    'bg-surface-50 text-surface-600 border border-surface-200/30 dark:bg-surface-800 dark:text-surface-200 dark:border-surface-200/20',
+    'bg-[#222] text-[#ccc] border border-[#333]',
 };
 
 export default function Badge({ children, variant = 'default', className = '' }) {
