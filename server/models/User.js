@@ -18,10 +18,9 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  rolePreference: {
-    type: String,
-    enum: ['swe', 'pm', 'design', 'marketing'],
-    default: null,
+  targetRoles: {
+    type: [String],
+    default: [],
   },
   resumeData: {
     rawText: { type: String, default: null },

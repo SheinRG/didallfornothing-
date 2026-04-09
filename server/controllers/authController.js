@@ -103,8 +103,43 @@ export const me = async (req, res) => {
     const user = await User.findById(decoded.userId).select('-passwordHash');
     if (!user) return res.status(404).json({ message: 'User not found' });
 
-    res.status(200).json({ user: { id: user._id, name: user.name, email: user.email } });
+    res.status(200).json({ user: { id: user._id, name: user.name, email: user.email, targetRoles: user.targetRoles } });
   } catch (err) {
     res.status(401).json({ message: 'Not authenticated' });
+  }
+};
+
+/**
+ * PUT /api/auth/update
+ * Update the user's email, password, or targetRoles.
+ */
+export const updateProfile = async (req, res) => {
+  try {
+    const token = req.cookies?.token;
+    if (!token) return res.status(401).json({ message: 'Not authenticated' });
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'dev-secret');
+    const user = await User.findById(decoded.userId);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    const { email, password, targetRoles } = req.body;
+
+    if (email) user.email = email;
+    if (targetRoles) user.targetRoles = targetRoles;
+    
+    if (password) {
+      const salt = await bcrypt.genSalt(12);
+      user.passwordHash = await bcrypt.hash(password, salt);
+    }
+
+    await user.save();
+
+    res.status(200).json({
+      message: 'Profile updated successfully',
+      user: { id: user._id, name: user.name, email: user.email, targetRoles: user.targetRoles }
+    });
+  } catch (err) {
+    console.error('Update profile error:', err);
+    res.status(500).json({ message: 'Server error during profile update' });
   }
 };

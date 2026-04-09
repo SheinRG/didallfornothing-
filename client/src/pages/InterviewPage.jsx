@@ -151,7 +151,7 @@ export default function InterviewPage() {
   }
 
   return (
-    <PageWrapper className="flex flex-col min-h-screen">
+    <PageWrapper className="flex flex-col h-screen overflow-hidden !pt-0 !pb-0">
       {/* ── Top bar ───────────────────────────────────── */}
       <div className="flex items-center justify-between px-6 py-5 border-b border-[#222] bg-[#111]/90 backdrop-blur-md">
         <div className="flex items-center gap-2 border border-[#333] px-3 py-1.5 rounded-full bg-[#1A1A1A]">
@@ -189,10 +189,10 @@ export default function InterviewPage() {
       </div>
 
       {/* ── Main content — two-panel layout ──────────── */}
-      <div className="flex-1 flex flex-col lg:flex-row gap-6 px-6 py-8 max-w-6xl mx-auto w-full overflow-hidden">
+      <div className="flex-1 flex flex-col lg:flex-row gap-8 px-6 py-6 pb-4 max-w-7xl mx-auto w-full min-h-0">
 
         {/* ── Left: Live Stage ──────────────────────── */}
-        <div className="flex-1 flex flex-col items-center justify-center gap-8">
+        <div className="flex-1 flex flex-col items-center justify-center gap-8 relative z-10 min-h-[40vh] lg:min-h-0">
           <motion.div
             key={currentIndex}
             initial={{ opacity: 0, y: 16 }}
@@ -286,7 +286,7 @@ export default function InterviewPage() {
         </div>
 
         {/* ── Right: Conversation Transcript ─────────── */}
-        <div className="w-full lg:w-[380px] flex flex-col bg-[#111] rounded-3xl border border-[#222] overflow-hidden">
+        <div className="w-full lg:w-[420px] flex-1 lg:h-full flex flex-col bg-[#111]/80 backdrop-blur-xl rounded-3xl border border-[#222] overflow-hidden shadow-2xl relative min-h-0">
           {/* Transcript header */}
           <div className="flex items-center justify-between px-5 py-4 border-b border-[#222]">
             <div className="flex items-center gap-2">
@@ -301,7 +301,13 @@ export default function InterviewPage() {
           </div>
 
           {/* Transcript messages */}
-          <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 max-h-[50vh] lg:max-h-none scrollbar-thin">
+          <div 
+            className="flex-1 overflow-y-auto px-5 py-6 space-y-5 scrollbar-thin pb-8"
+            style={{ 
+              maskImage: 'linear-gradient(to bottom, transparent 0%, black 5%, black 100%)',
+              WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 5%, black 100%)'
+            }}
+          >
             <AnimatePresence>
               {conversationHistory.map((msg, i) => (
                 <motion.div

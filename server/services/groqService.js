@@ -180,14 +180,17 @@ Return ONLY a JSON object with a "questions" array of 6 strings. The first 4 sho
 
 /**
  * analyseAnswer(transcript)
- * Analyzes the full interview transcript.
+ * Analyzes the full interview transcript and returns rich, actionable feedback.
  */
 export async function analyseAnswer(transcript) {
   if (!process.env.GROQ_API_KEY) {
     return {
       clarity: 7,
       relevance: 8,
+      structure: 6,
+      confidence: 7,
       overallScore: 7,
+      fillerWordCount: 3,
       feedback: 'Good overall, but you missed some STAR method structures.',
       starFeedback: 'You did well on Situation and Task, but missed detailing the specific Action you took and measurable Results.',
       modelAnswer: 'A good approach uses the STAR method...',
@@ -195,23 +198,54 @@ export async function analyseAnswer(transcript) {
   }
 
   try {
-    const prompt = `Analyze the following interview transcript. Provide feedback on their performance.
-Focus on if they used the STAR method (Situation, Task, Action, Result) in their behavioral answers.
-Return ONLY a valid JSON object with:
-- scores: integers 0-10 for clarity, relevance, structure, confidence
-- overallScore: integer 0-10
-- fillerWordCount: estimated integer count of ums/ahs
-- feedback: a string paragraph of general structural feedback
-- starFeedback: a string paragraph specifically grading how well they used the STAR method across their answers
-- modelAnswer: a string paragraph showing an ideal response strategy for the hardest question they faced
+    const prompt = `You are a world-class executive interview coach and communication analyst. You have been given a complete interview transcript to evaluate.
 
-Transcript:
+Your analysis must be THOROUGH, SPECIFIC, and ACTIONABLE. Do NOT give vague feedback — reference EXACT phrases, patterns, or moments from the transcript.
+
+EVALUATION CRITERIA (score each 0-10):
+
+1. **CLARITY** (0-10): How precisely did the candidate articulate their thoughts?
+   - Evaluate: sentence structure, vocabulary precision, avoidance of ambiguity, technical term accuracy
+   - Penalize: vague language, run-on sentences, unclear antecedents, jargon misuse
+
+2. **RELEVANCE** (0-10): How well did the answers address the actual questions asked?
+   - Evaluate: direct question answering, staying on topic, addressing all parts of multi-part questions
+   - Penalize: tangents, generic responses that could fit any question, missing the core intent
+
+3. **STRUCTURE** (0-10): How logically organized were the responses?
+   - Evaluate: clear opening/body/conclusion, logical flow, use of frameworks (STAR, etc.), transitions
+   - Penalize: rambling, circular logic, jumping between topics, no clear conclusion
+
+4. **CONFIDENCE** (0-10): How authoritative and assured did the candidate sound?
+   - Evaluate: decisive language, assertive statements, owning accomplishments
+   - Penalize: excessive hedging ("I think maybe..."), self-deprecation, uncertainty markers, filler words (um, uh, like, basically, you know)
+
+FILLER WORD DETECTION:
+Count ALL instances of: um, uh, like (as filler), basically, you know, sort of, kind of, I mean, right?, actually (as filler). Be thorough.
+
+Return ONLY a valid JSON object with this EXACT structure:
+{
+  "clarity": <integer 0-10>,
+  "relevance": <integer 0-10>,
+  "structure": <integer 0-10>,
+  "confidence": <integer 0-10>,
+  "overallScore": <integer 0-10>,
+  "fillerWordCount": <integer>,
+  "feedback": "<DETAILED paragraph: 4-6 sentences. Start with overall impression. Reference specific answers. Identify the #1 strength and #1 weakness with concrete examples from the transcript. End with the single most impactful improvement they could make.>",
+  "starFeedback": "<DETAILED STAR analysis: 3-5 sentences. Grade each STAR component (Situation/Task/Action/Result) separately. Quote or reference specific answers where they succeeded or failed at each component. If they didn't use STAR at all, explain exactly where and how they should have.>",
+  "modelAnswer": "<Write a complete, polished EXAMPLE answer for the hardest or worst-answered question in the transcript. This should be 4-6 sentences using perfect STAR structure, demonstrating exactly what an ideal response looks like. Start by stating which question this model answer is for.>"
+}
+
+CRITICAL: All score fields (clarity, relevance, structure, confidence, overallScore) must be at the TOP LEVEL of the JSON, not nested inside a "scores" object. The fillerWordCount must be an integer.
+
+TRANSCRIPT TO ANALYZE:
 ${transcript}`;
 
     const completion = await groq.chat.completions.create({
       messages: [{ role: 'user', content: prompt }],
       model: 'llama-3.1-8b-instant',
-      temperature: 0.5,
+      temperature: 0.4,
+      max_tokens: 2000,
       response_format: { type: 'json_object' },
     });
 
@@ -222,19 +256,52 @@ ${transcript}`;
     } else if (content.startsWith('```')) {
       content = content.replace(/^```\s*/, '').replace(/\s*```$/, '');
     }
-    return JSON.parse(content);
+
+    const raw = JSON.parse(content);
+
+    // Normalize: handle both flat and nested score formats from the LLM
+    const scores = raw.scores || {};
+    const result = {
+      clarity:        Math.min(10, Math.max(0, parseInt(raw.clarity ?? scores.clarity ?? 0))),
+      relevance:      Math.min(10, Math.max(0, parseInt(raw.relevance ?? scores.relevance ?? 0))),
+      structure:      Math.min(10, Math.max(0, parseInt(raw.structure ?? scores.structure ?? 0))),
+      confidence:     Math.min(10, Math.max(0, parseInt(raw.confidence ?? scores.confidence ?? 0))),
+      overallScore:   Math.min(10, Math.max(0, parseInt(raw.overallScore ?? scores.overallScore ?? 0))),
+      fillerWordCount: parseInt(raw.fillerWordCount ?? raw.filler_word_count ?? 0),
+      feedback:       raw.feedback || 'No detailed feedback was generated. Please try again.',
+      starFeedback:   raw.starFeedback || raw.star_feedback || '',
+      modelAnswer:    raw.modelAnswer || raw.model_answer || '',
+    };
+
+    // Safety: ensure overallScore is computed if LLM returned 0
+    if (result.overallScore === 0 && (result.clarity + result.relevance + result.structure + result.confidence) > 0) {
+      result.overallScore = Math.round(
+        (result.clarity + result.relevance + result.structure + result.confidence) / 4
+      );
+    }
+
+    console.log('✅ AI Feedback generated — scores:', {
+      clarity: result.clarity,
+      relevance: result.relevance,
+      structure: result.structure,
+      confidence: result.confidence,
+      overall: result.overallScore,
+      fillers: result.fillerWordCount,
+    });
+
+    return result;
   } catch (error) {
     console.warn('⚠️ AI answer analysis error. Gracefully degrading to fallback feedback.', error.message);
     return {
-      clarity: 7,
-      relevance: 8,
-      structure: 6,
-      confidence: 9,
-      overallScore: 7,
-      fillerWordCount: 2,
-      feedback: 'Mock feedback generated due to API error: Your answers hit the major points, but lacked specific examples and could have been structured better.',
-      starFeedback: 'Mock STAR feedback: Try to dedicate more time to the "Result" portion of your answers with quantifiable metrics.',
-      modelAnswer: 'A sample ideal answer would follow the STAR method strictly and include verifiable metrics.',
+      clarity: 5,
+      relevance: 6,
+      structure: 4,
+      confidence: 6,
+      overallScore: 5,
+      fillerWordCount: 5,
+      feedback: 'We were unable to fully analyze your interview due to a temporary system issue. Based on a surface-level review, your answers touched on the right themes but could benefit from more structured delivery using the STAR method. Focus on providing specific examples with measurable outcomes.',
+      starFeedback: 'STAR Method Assessment: Without full analysis, we recommend practicing each component — lead with a clear Situation (1-2 sentences of context), define the Task (your specific responsibility), detail your Action (step-by-step what YOU did), and close with quantifiable Results.',
+      modelAnswer: 'A strong model answer follows this pattern: "When I was at [Company], we faced [specific situation]. I was responsible for [specific task]. I took the following steps: [1, 2, 3]. As a result, we achieved [measurable outcome]."',
     };
   }
 }

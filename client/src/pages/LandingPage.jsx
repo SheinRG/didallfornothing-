@@ -3,179 +3,241 @@ import { motion } from 'framer-motion';
 import Navbar from '../components/layout/Navbar';
 import { BarChart, Activity, BrainCircuit, Mic } from 'lucide-react';
 
-import image1 from '../assets/image_1.jpg';
-import image2 from '../assets/image_2.png';
 import image3 from '../assets/image_3.jpg';
 
 export default function LandingPage() {
+  const toggleTheme = () => {
+    const isLight = document.documentElement.classList.contains('theme-light');
+    if (!isLight) {
+      document.documentElement.classList.add('theme-light');
+      localStorage.setItem('theme', 'light');
+    } else {
+      document.documentElement.classList.remove('theme-light');
+      localStorage.setItem('theme', 'dark');
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-orion-dark text-white font-sans overflow-x-hidden selection:bg-orion-red/30">
+    <div className="min-h-screen bg-surface text-on-surface font-sans overflow-x-hidden selection:bg-[#ff5543]/30">
       <Navbar />
 
-      <main className="relative z-10 pt-28 pb-24">
+      <main className="relative z-10 pt-14 pb-24">
 
         {/* ═══════════════════════════════════════════════════
-            HERO — contained card with image_1 behind text
+            HERO
         ═══════════════════════════════════════════════════ */}
-        <section className="max-w-[1400px] mx-auto px-6 mt-6">
-          <div className="relative rounded-3xl overflow-hidden min-h-[85vh] flex items-center">
-            
-            {/* Background image — sits behind hero text like a card */}
-            <div className="absolute inset-0 z-0">
-              <img
-                src={image1}
-                alt=""
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-r from-orion-dark via-orion-dark/95 to-orion-dark/60" />
-              <div className="absolute inset-0 bg-gradient-to-t from-orion-dark via-transparent to-orion-dark/40" />
-            </div>
+        <section className="relative max-w-[1400px] mx-auto px-6 pt-16 lg:pt-24 pb-32">
+          {/* Background decoration moved here */}
+          <div className="absolute inset-0 z-0 transition-opacity duration-1000">
+            <div
+              className="absolute inset-x-0 top-0 h-[600px]"
+              style={{
+                background:
+                  'radial-gradient(ellipse 60% 50% at 25% 30%, rgba(232,86,59,0.06) 0%, transparent 70%)',
+              }}
+            />
+          </div>
 
-            {/* Hero content grid */}
-            <div className="relative z-10 w-full grid grid-cols-1 lg:grid-cols-2 gap-8 p-8 sm:p-12 lg:p-16">
+          {/* Hero content grid */}
+          <div className="relative z-10 w-full grid grid-cols-1 lg:grid-cols-2 gap-12">
 
-              {/* Left — Text */}
+            {/* Left — Text */}
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, ease: 'easeOut' }}
+              className="flex flex-col justify-center"
+            >
               <motion.div
-                initial={{ opacity: 0, y: 30 }}
+                initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.7, ease: 'easeOut' }}
-                className="flex flex-col justify-center"
+                transition={{ delay: 0.2, duration: 0.5 }}
+                className="flex items-center gap-2.5 mb-8 border border-[#2a2a2a] bg-[#111]/80 backdrop-blur-sm w-max px-4 py-2 rounded-full"
               >
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2, duration: 0.5 }}
-                  className="flex items-center gap-2.5 mb-12 border border-[#2a2a2a] bg-[#111]/80 backdrop-blur-sm w-max px-4 py-2 rounded-full"
-                >
-                  <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <span className="text-[11px] tracking-[0.2em] text-[#aaa] font-semibold uppercase">
-                    READY TO START
-                  </span>
-                </motion.div>
-
-                <motion.h1
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3, duration: 0.7 }}
-                  className="text-7xl sm:text-8xl lg:text-[96px] font-[800] tracking-tight leading-[0.9] mb-10"
-                  style={{ textShadow: '0 8px 40px rgba(0,0,0,0.9), 0 4px 10px rgba(0,0,0,0.8)' }}
-                >
-                  Ace your next<br />
-                  interview<br />
-                  with <span className="text-[#E8563B]">ORION</span>
-                </motion.h1>
-
-                <motion.p
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.5, duration: 0.6 }}
-                  className="text-[17px] text-[#999] max-w-md mb-12 leading-relaxed"
-                >
-                  Practise with realistic questions, get real-time voice
-                  analysis, and recieve detailed AI feedback — all in your
-                  browser.
-                </motion.p>
-
-                <motion.div
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.65, duration: 0.5 }}
-                  className="flex flex-wrap gap-5"
-                >
-                  <Link to="/register">
-                    <motion.button
-                      whileHover={{ scale: 1.04 }}
-                      whileTap={{ scale: 0.96 }}
-                      className="px-8 py-5 bg-gradient-to-b from-[#E8563B] to-[#C23C23] text-white font-bold tracking-widest text-[15px] rounded-full transition-all"
-                    >
-                      GET STARTED
-                    </motion.button>
-                  </Link>
-                  <Link to="/dashboard">
-                    <motion.button
-                      whileHover={{ scale: 1.04 }}
-                      whileTap={{ scale: 0.96 }}
-                      className="px-10 py-5 bg-[#1C1C1C] text-white font-bold tracking-[0.12em] text-[15px] rounded-full border border-[#333] transition-all"
-                    >
-                      TRY DEMO
-                    </motion.button>
-                  </Link>
-                </motion.div>
+                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-[11px] tracking-[0.2em] text-[#aaa] font-semibold uppercase">
+                  READY TO START
+                </span>
               </motion.div>
 
-              {/* Right — Floating cards */}
-              <div className="hidden lg:flex items-center justify-center relative">
+              <motion.h1
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3, duration: 0.7 }}
+                className="text-7xl sm:text-8xl lg:text-[104px] font-[800] tracking-tight leading-[0.85] mb-8 text-white theme-light:text-zinc-900"
+              >
+                Ace your next<br />
+                interview<br />
+                with <span className="text-[#E8563B]">ORION</span>
+              </motion.h1>
 
-                {/* Ambient image_2 behind cards */}
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.4, duration: 0.8 }}
-                  className="absolute inset-0 flex items-center justify-center"
-                >
-                  <img
-                    src={image2}
-                    alt=""
-                    className="w-[90%] h-[90%] object-contain opacity-30"
-                  />
-                </motion.div>
+              <motion.p
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5, duration: 0.6 }}
+                className="text-[17px] text-[#999] max-w-md mb-10 leading-relaxed"
+              >
+                Practise with realistic questions, get real-time voice
+                analysis, and recieve detailed AI feedback — all in your
+                browser.
+              </motion.p>
 
-                {/* Code snippet card */}
-                <motion.div
-                  initial={{ opacity: 0, y: 30, rotate: 2 }}
-                  animate={{ opacity: 1, y: 0, rotate: 2 }}
-                  transition={{ delay: 0.6, duration: 0.7 }}
-                  whileHover={{ y: -8, rotate: 0, scale: 1.03 }}
-                  className="absolute top-8 right-4 z-20 w-[320px] bg-[#141414]/90 backdrop-blur-md border border-[#2a2a2a] rounded-2xl p-5 shadow-2xl cursor-default"
-                >
-                  <div className="flex gap-2 mb-4">
-                    <div className="w-3 h-3 rounded-full bg-[#EF4444]" />
-                    <div className="w-3 h-3 rounded-full bg-[#F59E0B]" />
-                    <div className="w-3 h-3 rounded-full bg-[#22C55E]" />
+              <motion.div
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.65, duration: 0.5 }}
+                className="flex flex-wrap gap-5"
+              >
+                <Link to="/register">
+                  <motion.button
+                    whileHover={{ scale: 1.04 }}
+                    whileTap={{ scale: 0.96 }}
+                    className="px-8 py-5 bg-[#E8563B] text-white font-bold tracking-widest text-[15px] rounded-full transition-all shadow-xl shadow-[#E8563B]/20"
+                  >
+                    GET STARTED
+                  </motion.button>
+                </Link>
+                <Link to="/dashboard">
+                  <motion.button
+                    whileHover={{ scale: 1.04 }}
+                    whileTap={{ scale: 0.96 }}
+                    className="px-10 py-5 bg-[#1C1C1C] theme-light:bg-zinc-100 text-white theme-light:text-zinc-900 font-bold tracking-[0.12em] text-[15px] rounded-full border border-[#333] theme-light:border-zinc-200 transition-all shadow-xl"
+                  >
+                    TRY DEMO
+                  </motion.button>
+                </Link>
+              </motion.div>
+            </motion.div>
+
+            {/* Right — Bento Preview Container */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.4, duration: 0.8 }}
+              className="hidden lg:block relative z-10 w-[540px] aspect-square ml-auto bg-white/[0.03] border border-white/10 theme-light:bg-zinc-100/60 theme-light:border-zinc-200/60 backdrop-blur-3xl rounded-[2rem] p-4 shadow-2xl overflow-hidden"
+            >
+              <div className="grid grid-cols-12 grid-rows-4 gap-3 h-full">
+
+                {/* ROW 1 */}
+                <motion.div whileHover={{ scale: 1.02 }} className="col-span-8 bg-surface-container-high border border-white/10 rounded-2xl p-6 shadow-lg flex flex-col justify-center theme-light:bg-white theme-light:border-black/5">
+                  <div className="flex gap-1.5 mb-4">
+                    <div className="w-2.5 h-2.5 rounded-full bg-[#EF4444]" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-[#F59E0B]" />
+                    <div className="w-2.5 h-2.5 rounded-full bg-[#22C55E]" />
                   </div>
-                  <pre className="text-[13px] font-mono leading-relaxed text-[#ccc] overflow-hidden">
-<span className="text-blue-400">fn</span> <span className="text-emerald-400">execute_briefing</span>() {'{'}{'\n'}
-{'  '}<span className="text-blue-400">let</span> structure = <span className="text-yellow-300">Logic</span>::init();{'\n'}
-{'  '}<span className="text-blue-400">let</span> result = structure.parse({'\n'}
-{'    '}<span className="text-green-400">"executive_intent"</span>{'\n'}
-{'  '});{'\n'}
-{'\n'}
-{'  '}<span className="text-blue-400">return</span> result.optimize();{'\n'}
-{'}'}
+                  <pre className="text-[13px] font-mono leading-relaxed text-[#ccc] theme-light:text-zinc-700 overflow-hidden">
+                    <span className="text-blue-400 theme-light:text-blue-700">fn</span> <span className="text-emerald-400 theme-light:text-emerald-700">parse</span>() {'{'}{'\n'}
+                    {'  '}<span className="text-blue-400 theme-light:text-blue-700">let</span> r = <span className="text-yellow-300 theme-light:text-yellow-700">Intent</span>::new();{'\n'}
+                    {'  '}r.optimize(){'\n'}
+                    {'}'}
                   </pre>
                 </motion.div>
 
-                {/* Active leader card */}
-                <motion.div
-                  initial={{ opacity: 0, y: 30, rotate: -1 }}
-                  animate={{ opacity: 1, y: 0, rotate: -1 }}
-                  transition={{ delay: 0.8, duration: 0.7 }}
-                  whileHover={{ y: -6, rotate: 0, scale: 1.04 }}
-                  className="absolute bottom-12 right-0 z-30 w-[280px] bg-[#1c1c1c]/90 backdrop-blur-md border border-[#2a2a2a] rounded-2xl p-4 flex items-center gap-4 shadow-2xl cursor-default"
-                >
+                <motion.div whileHover={{ scale: 1.02 }} className="col-span-4 bg-surface-container-high border border-white/10 rounded-2xl p-5 shadow-lg flex flex-col items-center justify-center theme-light:bg-white theme-light:border-black/5">
+                  <div className="relative w-14 h-14 flex items-center justify-center mb-2">
+                    <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                      <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" strokeWidth="12" className="text-white/5 theme-light:text-zinc-100" />
+                      <circle cx="50" cy="50" r="40" fill="none" stroke="#4edea3" strokeWidth="12" strokeDasharray="251.2" strokeDashoffset="60" strokeLinecap="round" />
+                    </svg>
+                    <span className="absolute text-[12px] font-bold text-white theme-light:text-zinc-900">75%</span>
+                  </div>
+                  <span className="text-[10px] font-bold text-[#888] theme-light:text-zinc-500 uppercase tracking-widest text-center mt-1">Stability</span>
+                </motion.div>
+
+                {/* ROW 2 */}
+                <motion.div whileHover={{ scale: 1.02 }} className="col-span-6 bg-surface-container-high border border-white/10 rounded-2xl p-6 shadow-lg flex flex-col justify-center theme-light:bg-white theme-light:border-black/5">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-1.5 h-5 bg-[#E8563B] rounded-full" />
+                    <span className="text-[11px] tracking-[0.2em] font-bold text-[#888] theme-light:text-zinc-500 uppercase">Analysis</span>
+                  </div>
+                  <div className="space-y-3">
+                    <div>
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-[11px] font-bold text-white theme-light:text-zinc-900">Clarity</span>
+                        <span className="text-[11px] font-mono font-bold text-emerald-400 theme-light:text-emerald-700">88%</span>
+                      </div>
+                      <div className="h-1.5 bg-white/5 rounded-full overflow-hidden theme-light:bg-zinc-100"><div className="h-full bg-emerald-400 w-[88%]" /></div>
+                    </div>
+                    <div>
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-[11px] font-bold text-white theme-light:text-zinc-900">Confidence</span>
+                        <span className="text-[11px] font-mono font-bold text-[#E8563B] theme-light:text-[#C23C23]">92%</span>
+                      </div>
+                      <div className="h-1.5 bg-white/5 rounded-full overflow-hidden theme-light:bg-zinc-100"><div className="h-full bg-[#E8563B] w-[92%]" /></div>
+                    </div>
+                  </div>
+                </motion.div>
+
+                <motion.div whileHover={{ scale: 1.02 }} className="col-span-6 bg-surface-container-high border border-white/10 rounded-2xl p-6 shadow-lg flex flex-col justify-center theme-light:bg-white theme-light:border-black/5">
+                  <div className="text-[10px] font-bold text-emerald-400 theme-light:text-emerald-700 uppercase tracking-[0.2em] mb-1">Target Path</div>
+                  <div className="text-[15px] font-bold text-white theme-light:text-zinc-900">Senior Software Engineer</div>
+                </motion.div>
+
+                {/* ROW 3 */}
+                <motion.div whileHover={{ scale: 1.02 }} className="col-span-7 bg-surface-container-high border border-white/10 rounded-2xl p-5 flex items-center gap-4 shadow-lg theme-light:bg-white theme-light:border-black/5">
                   <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 bg-[#333]">
                     <img src={image3} alt="User" className="w-full h-full object-cover" />
                   </div>
                   <div>
-                    <div className="text-[10px] tracking-[0.2em] text-emerald-400 font-bold mb-1">DASHBOARD</div>
-                    <div className="text-sm font-bold text-white">MARCUS VANCE</div>
+                    <div className="text-[9px] tracking-[0.2em] text-emerald-400 theme-light:text-emerald-700 font-bold mb-0.5 uppercase">Coach</div>
+                    <div className="text-[14px] font-bold text-white theme-light:text-zinc-900">RAGHAV</div>
                   </div>
-                  <div className="ml-auto w-3 h-3 rounded-full bg-emerald-500" />
+                  <div className="ml-auto w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.4)] mr-2" />
                 </motion.div>
 
-                {/* Dot grid decoration */}
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 0.15 }}
-                  transition={{ delay: 1, duration: 1 }}
-                  className="absolute bottom-24 left-8 grid grid-cols-6 gap-3"
-                >
-                  {Array.from({ length: 24 }).map((_, i) => (
-                    <div key={i} className="w-1.5 h-1.5 rounded-full bg-white/60" />
-                  ))}
+                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.95 }} onClick={toggleTheme} className="col-span-5 bg-surface-container-high border border-white/10 rounded-2xl p-4 flex items-center justify-center gap-4 shadow-lg cursor-pointer transition-colors hover:border-[#E8563B] theme-light:bg-white theme-light:border-black/5">
+                  <div className="w-11 h-11 rounded-full bg-[#E8563B] flex items-center justify-center text-white flex-shrink-0">
+                    <span className="material-symbols-outlined text-[20px]">light_mode</span>
+                  </div>
+                  <div>
+                    <div className="text-[9px] font-bold text-[#888] uppercase tracking-widest mb-0.5">Interface</div>
+                    <div className="text-[12px] font-bold text-white theme-light:text-zinc-900 leading-tight">Adaptive UI</div>
+                  </div>
                 </motion.div>
+
+                {/* ROW 4 */}
+                <motion.div whileHover={{ scale: 1.02 }} className="col-span-4 bg-surface-container-high border border-white/10 rounded-2xl p-5 shadow-lg flex flex-col items-center justify-center gap-2 theme-light:bg-white theme-light:border-black/5">
+                  <BrainCircuit className="text-[#E8563B]" size={22} />
+                  <div className="text-center">
+                    <div className="text-[9px] tracking-[0.2em] font-bold text-[#888] theme-light:text-zinc-500 uppercase mb-0.5">Intent</div>
+                    <div className="text-[12px] font-bold text-white theme-light:text-zinc-900">Relevant</div>
+                  </div>
+                </motion.div>
+
+                <motion.div whileHover={{ scale: 1.02 }} className="col-span-5 bg-surface-container-high border border-white/10 rounded-2xl p-4 flex flex-col items-center justify-center gap-2 shadow-lg theme-light:bg-white theme-light:border-black/5">
+                  <div className="w-3 h-3 rounded-full bg-red-500 animate-pulse shadow-[0_0_10px_rgba(239,68,68,0.5)] mb-1" />
+                  <span className="text-[11px] font-bold tracking-[0.15em] text-white theme-light:text-zinc-900 uppercase">Input Active</span>
+                </motion.div>
+
+                <motion.div whileHover={{ scale: 1.02 }} className="col-span-3 bg-surface-container-high border border-white/10 rounded-2xl p-4 flex flex-col items-center justify-center shadow-lg theme-light:bg-white theme-light:border-black/5">
+                  <div className="text-[8px] font-bold text-[#888] theme-light:text-zinc-500 tracking-[0.25em] uppercase mb-2">Voice</div>
+                  <div className="flex gap-[3px] items-center h-4">
+                    {[1, 0.6, 1.4, 0.8, 1.2, 0.5, 0.9].map((s, i) => (
+                      <motion.div
+                        key={i}
+                        animate={{ height: [6, 14, 6] }}
+                        transition={{ repeat: Infinity, duration: 1, delay: i * 0.1 }}
+                        className="w-[3px] bg-[#E8563B] rounded-full"
+                        style={{ height: `${s * 10}px` }}
+                      />
+                    ))}
+                  </div>
+                </motion.div>
+
               </div>
-            </div>
+            </motion.div>
+
+            {/* Dot grid decoration */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.15 }}
+              transition={{ delay: 1, duration: 1 }}
+              className="absolute bottom-24 left-8 grid grid-cols-6 gap-3"
+            >
+              {Array.from({ length: 24 }).map((_, i) => (
+                <div key={i} className="w-1.5 h-1.5 rounded-full bg-white/60" />
+              ))}
+            </motion.div>
           </div>
         </section>
 
@@ -190,28 +252,28 @@ export default function LandingPage() {
             viewport={{ once: true, margin: '-80px' }}
             whileHover={{ y: -8, scale: 1.01 }}
             transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-            className="lg:col-span-2 border border-[#222] bg-[#111]/80 backdrop-blur-sm p-10 rounded-3xl relative overflow-hidden group cursor-default"
+            className="lg:col-span-2 border border-[#222] theme-light:border-zinc-200 bg-[#111]/80 theme-light:bg-white backdrop-blur-sm p-10 rounded-3xl relative overflow-hidden group cursor-default shadow-2xl"
           >
-            <div className="absolute top-0 right-0 p-10 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity duration-500">
+            <div className="absolute top-0 right-0 p-10 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity duration-500 text-white theme-light:text-black">
               <BrainCircuit size={180} />
             </div>
             <div className="flex items-center gap-3 mb-6">
-              <Mic className="text-orion-red" size={22} />
-              <h2 className="text-xl font-bold tracking-tight">INTERVIEW PRACTICE</h2>
+              <Mic className="text-[#ff5543]" size={22} />
+              <h2 className="text-xl font-bold tracking-tight text-white theme-light:text-zinc-900">INTERVIEW PRACTICE</h2>
             </div>
-            <p className="text-[#888] text-base max-w-md mb-12 leading-relaxed">
-              Practise with realistic questions tailored to your target role. 
-              Get immediate feedback on your answers and track your progress 
+            <p className="text-[#888] theme-light:text-zinc-500 text-base max-w-md mb-12 leading-relaxed">
+              Practise with realistic questions tailored to your target role.
+              Get immediate feedback on your answers and track your progress
               over time.
             </p>
             <div className="flex gap-16">
               <div>
                 <div className="text-[11px] font-bold tracking-[0.2em] text-emerald-400 mb-2">LATENCY</div>
-                <div className="text-4xl font-black">42ms</div>
+                <div className="text-4xl font-black text-white theme-light:text-zinc-900">42ms</div>
               </div>
               <div>
-                <div className="text-[11px] font-bold tracking-[0.2em] text-orion-red mb-2">ACCURACY</div>
-                <div className="text-4xl font-black">99.8%</div>
+                <div className="text-[11px] font-bold tracking-[0.2em] text-[#ff5543] mb-2">ACCURACY</div>
+                <div className="text-4xl font-black text-white theme-light:text-zinc-900">99.8%</div>
               </div>
             </div>
           </motion.div>
@@ -223,14 +285,14 @@ export default function LandingPage() {
             viewport={{ once: true, margin: '-80px' }}
             whileHover={{ y: -8, scale: 1.02 }}
             transition={{ type: 'spring', stiffness: 200, damping: 20, delay: 0.1 }}
-            className="border border-[#222] bg-[#111]/80 backdrop-blur-sm p-10 rounded-3xl relative cursor-default"
+            className="border border-[#222] theme-light:border-zinc-200 bg-[#111]/80 theme-light:bg-white backdrop-blur-sm p-10 rounded-3xl relative cursor-default shadow-2xl"
           >
             <div className="flex items-center gap-3 mb-6">
-              <BarChart className="text-orion-red" size={22} />
-              <h2 className="text-lg font-bold tracking-tight">AI-DRIVEN FEEDBACK</h2>
+              <BarChart className="text-[#ff5543]" size={22} />
+              <h2 className="text-lg font-bold tracking-tight text-white theme-light:text-zinc-900">AI-DRIVEN FEEDBACK</h2>
             </div>
-            <p className="text-[#888] mb-8 leading-relaxed text-sm">
-              We analyze your responses for clarity, relevance, and structure. 
+            <p className="text-[#888] theme-light:text-zinc-500 mb-8 leading-relaxed text-sm">
+              We analyze your responses for clarity, relevance, and structure.
               Get actionable feedback to help you refine your communication style.
             </p>
             <div className="flex items-end gap-2 h-24 mt-auto">
@@ -241,94 +303,62 @@ export default function LandingPage() {
                   whileInView={{ height: `${h}%` }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: i * 0.08 }}
-                  className="flex-1 bg-orion-red/70 rounded-md"
+                  className="flex-1 bg-[#ff5543]/70 rounded-md"
                 />
               ))}
             </div>
           </motion.div>
         </section>
 
-        {/* ═══════════════════════════════════════════════════
-            EXECUTIVE WORKBENCH
-        ═══════════════════════════════════════════════════ */}
-        <section className="max-w-[1400px] mx-auto px-6 py-32">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <motion.div
-              initial={{ opacity: 0, x: -30 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true, margin: '-80px' }}
-            >
-              <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight mb-8">
-                YOUR<br />DASHBOARD
-              </h2>
-              <p className="text-lg text-[#888] mb-10 leading-relaxed max-w-md">
-                The ultimate preparation environment. Track your interview 
-                history, upload your resume for tailored questions, and see 
-                your growth over time.
-              </p>
+        <section className="max-w-[1400px] mx-auto px-6 py-32 border-t border-white/5">
+          <div className="text-center mb-20">
+            <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight mb-6 text-white theme-light:text-zinc-900">
+              PLATFORM FEATURES
+            </h2>
+            <p className="text-lg text-[#888] theme-light:text-zinc-500 max-w-2xl mx-auto">
+              Everything you need to transform your interview performance from average to executive.
+            </p>
+          </div>
 
-              <ul className="space-y-5">
-                {[
-                  'Context-aware scenario builder',
-                  'Historical logic archiving',
-                  'Collaborative stakeholder reviews',
-                ].map((item, i) => (
-                  <motion.li
-                    key={i}
-                    initial={{ opacity: 0, x: -12 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: i * 0.1 + 0.2 }}
-                    className="flex items-center gap-4 text-[#999]"
-                  >
-                    <div className="w-2 h-2 rounded-full bg-orion-red flex-shrink-0" />
-                    {item}
-                  </motion.li>
-                ))}
-              </ul>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, scale: 0.92 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              whileHover={{ scale: 1.02, y: -6 }}
-              viewport={{ once: true }}
-              transition={{ type: 'spring', stiffness: 180, damping: 22 }}
-              className="relative rounded-3xl overflow-hidden border border-[#222] bg-[#111] p-3 cursor-default"
-            >
-              <img
-                src={image3}
-                alt="Executive Workbench"
-                className="w-full h-auto rounded-2xl object-cover"
-              />
-            </motion.div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              { title: 'Tailored Scenarios', desc: 'AI generates questions based on your specific target job description.', icon: 'target' },
+              { title: 'Deep AI Analysis', desc: 'Get granular scores on clarity, relevance, and structural integrity.', icon: 'analytics' },
+              { title: 'Historical Archives', desc: 'Securely store and review every past session to track growth.', icon: 'folder_open' },
+              { title: 'Real-time Hints', desc: 'Get subtle AI nudges when you need help structuring an answer.', icon: 'lightbulb' }
+            ].map((f, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                className="bg-surface-container-high border border-white/10 theme-light:bg-white theme-light:border-black/5 rounded-3xl p-8 shadow-xl hover:translate-y-[-4px] transition-all cursor-default"
+              >
+                <span className="material-symbols-outlined text-[#ff5543] mb-6 text-3xl">
+                  {f.icon}
+                </span>
+                <h3 className="text-lg font-bold text-white theme-light:text-zinc-900 mb-3">{f.title}</h3>
+                <p className="text-sm text-[#888] theme-light:text-zinc-500 leading-relaxed">{f.desc}</p>
+              </motion.div>
+            ))}
           </div>
         </section>
 
-        {/* ═══════════════════════════════════════════════════
-            CTA
-        ═══════════════════════════════════════════════════ */}
-        <section className="max-w-[1400px] mx-auto px-6 mt-16">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="bg-gradient-to-br from-orion-red to-[#B91C1C] rounded-3xl py-24 px-8 text-center"
-          >
-            <Activity className="text-white/80 mx-auto mb-6" size={44} />
-            <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight mb-10 max-w-2xl mx-auto">
-              READY TO ACE IT?
-            </h2>
-            <Link to="/register">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="px-12 py-5 bg-white text-orion-dark font-bold tracking-[0.15em] text-sm rounded-full transition-all hover:bg-gray-100"
-              >
-                SIGN UP NOW
-              </motion.button>
-            </Link>
-          </motion.div>
+        {/* FINAL SIGN UP CTA */}
+        <section className="max-w-4xl mx-auto px-6 py-32 text-center">
+          <h2 className="text-5xl font-black tracking-tighter mb-8 text-white theme-light:text-zinc-900 uppercase">
+            Start Your Journey
+          </h2>
+          <Link to="/register">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="px-16 py-6 bg-[#ff5543] text-white font-black tracking-[0.2em] text-lg rounded-full shadow-[0_20px_40px_rgba(255,85,67,0.3)] hover:shadow-[0_25px_50px_rgba(255,85,67,0.4)] transition-all"
+            >
+              GET STARTED NOW
+            </motion.button>
+          </Link>
         </section>
       </main>
     </div>

@@ -1,4 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&family=Playwrite+IE:wght@100..400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,12 +7,154 @@
 
 @layer base {
   html {
-    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    font-family: 'Montserrat', sans-serif;
+    @apply antialiased;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
   body {
-    @apply bg-white text-surface-900 dark:bg-surface-900 dark:text-surface-50;
+    background-color: #131313;
+    color: #e5e2e1;
+    @apply min-h-screen;
+    background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.03) 1px, transparent 0);
+    background-size: 40px 40px;
+  }
+  
+  /* LIGHT THEME PALETTE OVERRIDES */
+  .theme-light body, .theme-light .bg-surface {
+    background-color: #f8f9fa !important;
+  }
+
+  .theme-light .text-white { color: #1a1a1a !important; }
+  .theme-light .text-zinc-300 { color: #4a4a4a !important; }
+  .theme-light .text-zinc-400 { color: #5f6368 !important; }
+  .theme-light .text-zinc-500 { color: #80868b !important; }
+  .theme-light .text-zinc-600 { color: #9aa0a6 !important; }
+  .theme-light .text-primary-container { color: #d33c20 !important; }
+  .theme-light .text-\[\#aaa\] { color: #555 !important; }
+  .theme-light .text-\[\#888\] { color: #444 !important; }
+  .theme-light .text-\[\#666\] { color: #777 !important; }
+  .theme-light .text-\[\#555\] { color: #888 !important; }
+  .theme-light .text-white\/90 { color: rgba(0,0,0,0.8) !important; }
+  .theme-light .text-white\/80 { color: rgba(0,0,0,0.7) !important; }
+
+  /* BACKGROUNDS */
+  .theme-light .bg-white\/5 { background-color: rgba(0, 0, 0, 0.05) !important; }
+  .theme-light .bg-primary-container\/20 { background-color: rgba(224, 79, 50, 0.1) !important; }
+  
+  .theme-light .bg-\[\#1a1a1a\],
+  .theme-light .bg-\[\#1A1A1A\],
+  .theme-light .bg-\[\#111\],
+  .theme-light .bg-\[\#1C1C1C\],
+  .theme-light .bg-zinc-800,
+  .theme-light .bg-orion-dark {
+    background-color: #ffffff !important;
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.08) !important;
+    border-color: rgba(0,0,0,0.1) !important;
+    color: #1a1a1a;
+  }
+
+  .theme-light .bg-\[\#111\]\/80 { background-color: rgba(255, 255, 255, 0.85) !important; }
+  .theme-light .bg-\[\#111\]\/90 { background-color: rgba(255, 255, 255, 0.95) !important; }
+  .theme-light .bg-\[\#1a2a1a\] { background-color: #e6fced !important; }
+  .theme-light .bg-\[\#1a2a4a\] { background-color: #e6f0fc !important; }
+  .theme-light .bg-\[\#1a2a4a\]\/60 { background-color: rgba(230, 240, 252, 0.6) !important; }
+
+  /* BORDERS */
+  .theme-light .border-white\/5 { border-color: rgba(0, 0, 0, 0.05) !important; }
+  .theme-light .border-white\/10 { border-color: rgba(0, 0, 0, 0.1) !important; }
+  .theme-light .border-white\/20 { border-color: rgba(0, 0, 0, 0.15) !important; }
+  .theme-light .border-\[\#222\], 
+  .theme-light .border-\[\#333\],
+  .theme-light .border-\[\#2a2a2a\] { border-color: rgba(0,0,0,0.1) !important; }
+  .theme-light .border-\[\#2a3a5a\] { border-color: rgba(59, 130, 246, 0.2) !important; }
+  .theme-light .border-\[\#E8563B\]\/30 { border-color: rgba(232, 86, 59, 0.3) !important; }
+
+  /* ── FEEDBACK PAGE: surface-container token overrides ── */
+  .theme-light .bg-surface-container-low {
+    background-color: #ffffff !important;
+  }
+  .theme-light .bg-surface-container-high {
+    background-color: #eef0f2 !important;
+  }
+  .theme-light .bg-surface-container-highest {
+    background-color: #e2e4e6 !important;
+  }
+  .theme-light .bg-surface-container-lowest {
+    background-color: #f0f2f4 !important;
+  }
+  .theme-light .bg-surface-container {
+    background-color: #f5f6f8 !important;
+  }
+
+  /* Surface text */
+  .theme-light .text-on-surface,
+  .theme-light .text-on-surface-variant {
+    color: #3c3c3c !important;
+  }
+  .theme-light .text-neutral-200 { color: #333 !important; }
+  .theme-light .text-neutral-400 { color: #666 !important; }
+  .theme-light .text-neutral-500 { color: #888 !important; }
+
+  /* Surface-container colour classes used as text stroke in SVG */
+  .theme-light .text-surface-container-highest {
+    color: #d9dce0 !important;
+  }
+}
+
+@layer components {
+  .glass-panel {
+    background: linear-gradient(135deg, rgba(42, 42, 42, 0.4) 0%, rgba(20, 20, 20, 0.4) 100%);
+    backdrop-filter: blur(40px);
+    -webkit-backdrop-filter: blur(40px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  }
+
+  .theme-light .glass-panel {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(245, 245, 245, 0.95) 100%) !important;
+    border: 1px solid rgba(0, 0, 0, 0.08) !important;
+    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.05) !important;
+  }
+
+  .card-pop {
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    will-change: transform, box-shadow;
+  }
+
+  .card-pop:hover {
+    transform: translateY(-8px) scale(1.02) !important;
+    box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.45) !important;
+  }
+
+  .theme-light .card-pop:hover {
+    box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.12) !important;
+  }
+
+  .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  }
+
+  /* ── Feedback page card light mode ── */
+  .theme-light .theme-light-card {
+    background-color: #ffffff !important;
+    border-color: rgba(0,0,0,0.06) !important;
+    box-shadow: 0 4px 24px -4px rgba(0,0,0,0.06) !important;
+  }
+
+  .theme-light .theme-light-nav {
+    background-color: rgba(248,249,250,0.85) !important;
+    border-color: rgba(0,0,0,0.06) !important;
+  }
+
+  /* Suppress dark dot-grid in light mode */
+  .theme-light body {
+    background-image: none !important;
+    background-color: #f8f9fa !important;
+  }
+
+  .theme-light .bg-\[\#131313\]\/70 {
+    background-color: rgba(248,249,250,0.85) !important;
   }
 }

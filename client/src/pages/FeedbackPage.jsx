@@ -1,44 +1,135 @@
 import { useState, useEffect } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import PageWrapper from '../components/ui/PageWrapper';
-import ScoreRing from '../components/ui/ScoreRing';
-import Badge from '../components/ui/Badge';
-import Button from '../components/ui/Button';
-import Card from '../components/ui/Card';
 
-const scoreLabels = ['Clarity', 'Relevance', 'Structure', 'Confidence'];
-const scoreKeys = ['clarity', 'relevance', 'structure', 'confidence'];
+const API = 'http://localhost:5000/api';
 
-const containerVariants = {
-  animate: { transition: { staggerChildren: 0.08 } },
-};
-const itemVariants = {
-  initial: { opacity: 0, y: 20 },
-  animate: { opacity: 1, y: 0 },
-};
+const metricMeta = [
+  { key: 'clarity',    label: 'Clarity',    icon: 'settings_voice', desc: 'Precision of technical terminology and enunciation.' },
+  { key: 'relevance',  label: 'Relevance',  icon: 'target',         desc: 'Alignment with organizational objectives.' },
+  { key: 'structure',  label: 'Structure',  icon: 'account_tree',   desc: 'Logical flow of narrative and problem solving.' },
+  { key: 'confidence', label: 'Confidence', icon: 'electric_bolt',  desc: 'Stability in vocal tone and presence.' },
+];
 
+/* ── colour helper: picks accent based on value ─── */
+function metricColor(value) {
+  if (value >= 70) return { text: 'text-tertiary', bg: 'bg-tertiary', barBg: 'bg-tertiary' };
+  if (value >= 40) return { text: 'text-primary-container', bg: 'bg-primary-container', barBg: 'bg-primary-container' };
+  return { text: 'text-white/50', bg: 'bg-white/20', barBg: 'bg-white/20' };
+}
+
+/* ── SVG radial gauge ─────────────────────────── */
+function RadialGauge({ score = 0, max = 10 }) {
+  const pct = Math.min(score / max, 1);
+  const r = 45;
+  const C = 2 * Math.PI * r;
+  const offset = C * (1 - pct);
+
+  return (
+    <div className="relative w-72 h-72 flex items-center justify-center shrink-0">
+      <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r={r} fill="none" stroke="currentColor" strokeWidth="8"
+          className="text-surface-container-highest" />
+        <motion.circle
+          cx="50" cy="50" r={r} fill="none" stroke="#ff5543" strokeWidth="8" strokeLinecap="round"
+          strokeDasharray={C}
+          initial={{ strokeDashoffset: C }}
+          animate={{ strokeDashoffset: offset }}
+          transition={{ duration: 1.2, ease: 'easeOut', delay: 0.3 }}
+          className="drop-shadow-[0_0_12px_rgba(255,85,67,0.5)]"
+        />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className="text-8xl font-black text-white tracking-tighter">
+          {score}<span className="text-3xl text-neutral-500">/10</span>
+        </span>
+        <span className="text-neutral-500 font-semibold text-xs tracking-widest uppercase mt-1">
+          {score >= 7 ? 'Strong' : score >= 4 ? 'Developing' : 'Critical'} Grade
+        </span>
+      </div>
+    </div>
+  );
+}
+
+/* ── Metric card ──────────────────────────────── */
+function MetricCard({ icon, label, description, value }) {
+  const pct = Math.round((value / 10) * 100);
+  const c = metricColor(pct);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-surface-container-low p-8 border border-white/5 hover:bg-surface-container transition-all rounded-[2.5rem] flex flex-col justify-between card-pop
+                 theme-light-card"
+    >
+      <div>
+        <div className="flex justify-between items-start mb-4">
+          <span className={`material-symbols-outlined text-3xl ${c.text}`}>{icon}</span>
+          <span className={`text-sm font-semibold tracking-widest ${c.text}`}>{pct}%</span>
+        </div>
+        <h3 className="text-white font-bold text-xl mb-2">{label}</h3>
+        <p className="text-on-surface-variant text-xs leading-snug">{description}</p>
+      </div>
+      <div className="mt-6 w-full bg-surface-container-highest h-1.5 rounded-full overflow-hidden">
+        <motion.div
+          className={`${c.barBg} h-full`}
+          initial={{ width: 0 }}
+          animate={{ width: `${pct}%` }}
+          transition={{ duration: 0.8, ease: 'easeOut', delay: 0.5 }}
+        />
+      </div>
+    </motion.div>
+  );
+}
+
+/* ════════════════════════════════════════════════
+   MAIN PAGE
+   ════════════════════════════════════════════════ */
 export default function FeedbackPage() {
   const { sessionId } = useParams();
+  const navigate = useNavigate();
   const [feedbackData, setFeedbackData] = useState(null);
+  const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
   const [modelOpen, setModelOpen] = useState(false);
+  const [isThemeLight, setIsThemeLight] = useState(false);
+
+  // Sync theme from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem('theme');
+    if (saved === 'light') {
+      setIsThemeLight(true);
+      document.documentElement.classList.add('theme-light');
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const next = !isThemeLight;
+    setIsThemeLight(next);
+    if (next) {
+      document.documentElement.classList.add('theme-light');
+      localStorage.setItem('theme', 'light');
+    } else {
+      document.documentElement.classList.remove('theme-light');
+      localStorage.setItem('theme', 'dark');
+    }
+  };
 
   useEffect(() => {
-    if (!sessionId) {
-      setLoading(false);
-      return;
-    }
+    if (!sessionId) { setLoading(false); return; }
 
-    const fetchFeedback = async () => {
+    const fetchAll = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/api/feedback/${sessionId}`, {
-          credentials: 'include',
-        });
-        const data = await response.json();
-        if (response.ok) {
-          setFeedbackData(data.feedback);
-        }
+        const [fbRes, sessRes] = await Promise.all([
+          fetch(`${API}/feedback/${sessionId}`, { credentials: 'include' }),
+          fetch(`${API}/sessions/${sessionId}`, { credentials: 'include' }),
+        ]);
+        const fbData = await fbRes.json();
+        if (fbRes.ok) setFeedbackData(fbData.feedback);
+
+        const sessData = await sessRes.json();
+        if (sessRes.ok) setSession(sessData.session);
       } catch (err) {
         console.error('Error fetching feedback:', err);
       } finally {
@@ -46,135 +137,309 @@ export default function FeedbackPage() {
       }
     };
 
-    fetchFeedback();
+    fetchAll();
   }, [sessionId]);
 
+  /* ── Loading ───────────────────────────────── */
   if (loading) {
     return (
-      <PageWrapper className="flex items-center justify-center">
-        <p className="text-surface-400">Analyzing your performance...</p>
-      </PageWrapper>
+      <div className="min-h-screen bg-surface flex items-center justify-center">
+        <p className="text-on-surface-variant animate-pulse font-semibold tracking-widest uppercase text-xs">
+          Analyzing your performance...
+        </p>
+      </div>
     );
   }
 
+  /* ── No data ───────────────────────────────── */
   if (!feedbackData) {
     return (
-      <PageWrapper className="flex flex-col items-center justify-center py-20">
-        <span className="text-5xl mb-4">📝</span>
-        <h2 className="text-xl font-medium text-surface-900 dark:text-surface-50 mb-2">No feedback yet</h2>
-        <p className="text-sm text-surface-400 dark:text-surface-200 mb-6 text-center max-w-sm">
+      <div className="min-h-screen bg-surface flex flex-col items-center justify-center gap-4">
+        <span className="material-symbols-outlined text-6xl text-primary-container">description</span>
+        <h2 className="text-xl font-bold text-white">No feedback yet</h2>
+        <p className="text-sm text-on-surface-variant max-w-sm text-center">
           Complete an interview session to see your AI-generated performance analysis here.
         </p>
-        <Link to="/onboarding">
-          <Button variant="primary">Start Practicing</Button>
+        <Link
+          to="/onboarding"
+          className="mt-4 px-8 py-3.5 bg-primary-container text-white rounded-xl font-semibold text-sm tracking-widest uppercase hover:brightness-110 transition-all"
+        >
+          Start Practicing
         </Link>
-      </PageWrapper>
+      </div>
     );
   }
 
   const { scores, overallScore, fillerWordCount, feedback, starFeedback, modelAnswer } = feedbackData;
 
+  /* derive title from session data */
+  const roleLabels = { swe: 'SWE', pm: 'PM', design: 'Design', marketing: 'Marketing' };
+  const levelLabels = { intern: 'Intern', junior: 'Junior', mid: 'Mid', senior: 'Senior' };
+  const titleText = session
+    ? `${levelLabels[session.level] || ''} ${roleLabels[session.role] || ''} Interview`.trim()
+    : 'Interview Analysis';
+
   return (
-    <PageWrapper className="flex flex-col items-center px-6 py-16">
-      <div className="w-full max-w-3xl">
-        <h1 className="text-4xl font-extrabold tracking-tight text-white mb-2 text-center uppercase">
-          INTERVIEW FEEDBACK
-        </h1>
-        <p className="text-[#888] leading-relaxed mb-12 text-center border-b border-[#222] pb-8">
-          Review your performance and areas for improvement.
-        </p>
+    <div className="min-h-screen bg-surface text-on-surface font-sans selection:bg-primary-container/30">
 
-        {/* ── Overall score ────────────────────────────── */}
-        <div className="flex flex-col items-center mb-16">
-          <ScoreRing score={overallScore} label="Overall" size={140} />
-          <Badge variant="warning" className="mt-6">
-            {fillerWordCount} FILLER WORDS DETECTED
-          </Badge>
-        </div>
+      {/* ── Nav ─────────────────────────────────── */}
+      <nav className="fixed top-0 w-full z-50 bg-[#131313]/70 backdrop-blur-xl border-b border-white/5
+                       theme-light-nav">
+        <div className="flex justify-between items-center px-8 h-20 w-full max-w-screen-2xl mx-auto">
+          <Link to="/dashboard" className="text-2xl font-black tracking-tighter text-[#F03E2F] uppercase">
+            ORION
+          </Link>
 
-        {/* ── Score grid ───────────────────────────────── */}
-        <motion.div
-          className="grid grid-cols-2 sm:grid-cols-4 gap-8 mb-16"
-          variants={containerVariants}
-          initial="initial"
-          whileInView="animate"
-          viewport={{ once: true }}
-        >
-          {scoreKeys.map((key, i) => (
-            <motion.div key={key} variants={itemVariants} className="flex justify-center">
-              <ScoreRing score={scores[key]} label={scoreLabels[i]} size={100} />
-            </motion.div>
-          ))}
-        </motion.div>
+          <div className="hidden md:flex items-center space-x-10 font-semibold">
+            <Link to="/dashboard" className="text-neutral-400 hover:text-white transition-colors">Dashboard</Link>
+            <span className="text-[#F03E2F] border-b-2 border-[#F03E2F] pb-1">Interviews</span>
+          </div>
 
-        {/* ── Written feedback ─────────────────────────── */}
-        <Card className="mb-8">
-          <h3 className="text-[11px] font-bold tracking-[0.2em] text-[#888] mb-4">
-            DETAILED FEEDBACK
-          </h3>
-          <p className="text-[15px] text-white leading-relaxed mb-6">
-            {feedback}
-          </p>
-
-          {starFeedback && (
-            <>
-              <h3 className="text-[11px] font-bold tracking-[0.2em] text-[#888] mb-4">
-                STAR METHOD ANALYSIS
-              </h3>
-              <p className="text-[15px] text-[#E8563B] leading-relaxed">
-                {starFeedback}
-              </p>
-            </>
-          )}
-        </Card>
-
-        {/* ── Model answer accordion ───────────────────── */}
-        <Card className="mb-12">
-          <button
-            onClick={() => setModelOpen((prev) => !prev)}
-            className="w-full flex items-center justify-between text-left focus:outline-none"
-          >
-            <h3 className="text-[11px] font-bold tracking-[0.2em] text-[#888]">
-              SAMPLE ANSWER
-            </h3>
-            <motion.span
-              animate={{ rotate: modelOpen ? 180 : 0 }}
-              transition={{ duration: 0.2 }}
-              className="text-[#E8563B] font-bold"
+          <div className="flex items-center space-x-6">
+            <button onClick={toggleTheme} className="material-symbols-outlined text-neutral-400 hover:text-white transition-colors">
+              {isThemeLight ? 'light_mode' : 'dark_mode'}
+            </button>
+            <button className="material-symbols-outlined text-neutral-400 hover:text-white transition-colors">notifications</button>
+            <Link
+              to="/dashboard"
+              className="w-10 h-10 rounded-full border border-white/10 overflow-hidden flex items-center justify-center bg-primary-container/20"
             >
-              ▼
-            </motion.span>
-          </button>
+              <span className="material-symbols-outlined text-primary-container">person</span>
+            </Link>
+          </div>
+        </div>
+      </nav>
 
-          <AnimatePresence>
-            {modelOpen && (
+      {/* ── Main Content ───────────────────────── */}
+      <main className="pt-32 pb-12 px-6 md:px-8 max-w-screen-2xl mx-auto relative min-h-[calc(100vh-80px)]">
+
+        {/* Dot grid background texture */}
+        <div className="fixed inset-0 pointer-events-none z-0 opacity-100"
+          style={{
+            backgroundImage: 'radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px)',
+            backgroundSize: '24px 24px',
+          }}
+        />
+
+        {/* Breadcrumb / Meta */}
+        <div className="relative z-10 mb-12 flex flex-col md:flex-row items-start md:items-end justify-between gap-6">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+            <span className="text-primary-container font-semibold text-sm tracking-widest uppercase">Analysis Report</span>
+            <h1 className="text-4xl md:text-6xl font-extrabold tracking-tighter mt-2 text-white">
+              {titleText}
+            </h1>
+            <p className="text-on-surface-variant mt-3 max-w-lg text-lg">
+              Executive feedback and technical communication metrics
+              {sessionId && <> for Session #{sessionId.slice(-4).toUpperCase()}.</>}
+            </p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.4 }}
+            className="flex gap-4"
+          >
+            <button
+              onClick={() => window.print()}
+              className="px-6 py-3 bg-surface-container-high rounded-xl font-semibold text-sm hover:bg-surface-container-highest transition-all active:scale-95 flex items-center gap-2 border border-white/5"
+            >
+              <span className="material-symbols-outlined text-sm">share</span> EXPORT PDF
+            </button>
+            <Link
+              to="/onboarding"
+              className="px-6 py-3 bg-primary-container rounded-xl font-semibold text-sm hover:brightness-110 transition-all active:scale-95 flex items-center gap-2"
+            >
+              <span className="material-symbols-outlined text-sm">replay</span> NEW SESSION
+            </Link>
+          </motion.div>
+        </div>
+
+        {/* ── Layout Grid ────────────────────────── */}
+        <div className="relative z-10 grid grid-cols-12 gap-8">
+
+          {/* Hero: Overall Score */}
+          <div className="col-span-12 lg:col-span-8">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              className="bg-surface-container-low p-10 md:p-12 h-full border border-white/5 relative overflow-hidden rounded-[2.5rem] card-pop
+                         theme-light-card"
+            >
+              {/* Subtle Glow */}
+              <div className="absolute -top-24 -left-24 w-96 h-96 bg-primary-container/10 blur-[120px] pointer-events-none" />
+
+              <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-12">
+                <div className="flex-1">
+                  <h2 className="text-3xl md:text-4xl font-bold text-white tracking-tight mb-6">
+                    Overall Performance
+                  </h2>
+                  <p className="text-on-surface-variant leading-relaxed text-lg md:text-xl mb-10">
+                    {feedback || 'Your delivery exhibited high technical proficiency. Review the detailed metrics for specific areas of improvement.'}
+                  </p>
+
+                  {/* Filler Words Badge */}
+                  {fillerWordCount > 0 && (
+                    <div className="inline-flex items-center gap-4 px-6 py-4 bg-primary-container/10 border border-primary-container/20 rounded-full shadow-[0_0_30px_rgba(255,85,67,0.1)]">
+                      <span className="material-symbols-outlined text-primary-container" style={{ fontVariationSettings: '"FILL" 1' }}>warning</span>
+                      <span className="text-primary-container font-semibold text-sm tracking-wide">
+                        {fillerWordCount} FILLER WORDS DETECTED
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                <RadialGauge score={Math.round(overallScore || 0)} max={10} />
+              </div>
+            </motion.div>
+          </div>
+
+          {/* Metrics Column */}
+          <div className="col-span-12 lg:col-span-4 grid grid-cols-2 gap-6">
+            {metricMeta.map((m, i) => (
+              <MetricCard
+                key={m.key}
+                icon={m.icon}
+                label={m.label}
+                description={m.desc}
+                value={scores?.[m.key] ?? 0}
+              />
+            ))}
+          </div>
+
+          {/* Critical Insights */}
+          <div className="col-span-12">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4, duration: 0.5 }}
+              className="bg-surface-container-low rounded-[2.5rem] border border-white/5 p-10 theme-light-card card-pop"
+            >
+              <div className="flex items-center gap-4 mb-10">
+                <div className="w-2.5 h-10 bg-primary-container rounded-full" />
+                <h3 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">Critical Insights</h3>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                {/* Weakness */}
+                <div className="flex gap-6 items-start">
+                  <div className="bg-primary-container/10 p-4 rounded-3xl shrink-0">
+                    <span className="material-symbols-outlined text-primary-container text-4xl">error_outline</span>
+                  </div>
+                  <div>
+                    <span className="block text-white font-semibold text-lg mb-2 uppercase tracking-wider">
+                      Areas for Improvement
+                    </span>
+                    <p className="text-on-surface-variant text-base md:text-lg leading-relaxed">
+                      {starFeedback || 'Focus on structuring your responses using the STAR method. Reduce filler words and practice authoritative pausing between key points.'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Strength */}
+                <div className="flex gap-6 items-start">
+                  <div className="bg-tertiary/10 p-4 rounded-3xl shrink-0">
+                    <span className="material-symbols-outlined text-tertiary text-4xl">check_circle</span>
+                  </div>
+                  <div>
+                    <span className="block text-white font-semibold text-lg mb-2 uppercase tracking-wider">
+                      Key Strengths
+                    </span>
+                    <p className="text-on-surface-variant text-base md:text-lg leading-relaxed">
+                      {scores && scores.relevance >= 7
+                        ? 'Strong alignment with role requirements and excellent use of domain terminology throughout the dialogue.'
+                        : scores && scores.confidence >= 7
+                        ? 'Confident vocal tone and steady delivery. Your presence during responses is a strong suit.'
+                        : 'Keep building on your foundational knowledge. Consistent practice will strengthen your interview performance.'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+
+          {/* Model Answer Accordion */}
+          {modelAnswer && (
+            <div className="col-span-12">
               <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={{ duration: 0.3, ease: 'easeOut' }}
-                className="overflow-hidden"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5, duration: 0.5 }}
+                className="bg-surface-container-low rounded-[2.5rem] border border-white/5 p-10 theme-light-card card-pop"
               >
-                <p className="text-[15px] font-mono text-[#ccc] leading-relaxed mt-6 pt-6 border-t border-[#333]">
-                  {modelAnswer}
-                </p>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </Card>
+                <button
+                  onClick={() => setModelOpen(prev => !prev)}
+                  className="w-full flex items-center justify-between text-left focus:outline-none group"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-2.5 h-10 bg-tertiary rounded-full" />
+                    <h3 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">
+                      Sample Answer
+                    </h3>
+                  </div>
+                  <motion.span
+                    animate={{ rotate: modelOpen ? 180 : 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="material-symbols-outlined text-primary-container text-2xl group-hover:text-white transition-colors"
+                  >
+                    expand_more
+                  </motion.span>
+                </button>
 
-        {/* ── Actions ──────────────────────────────────── */}
-        <div className="flex justify-center gap-6">
-          <Link to="/onboarding">
-            <Button variant="primary">START NEW INTERVIEW</Button>
+                <AnimatePresence>
+                  {modelOpen && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.3, ease: 'easeOut' }}
+                      className="overflow-hidden"
+                    >
+                      <p className="text-base font-mono text-on-surface-variant leading-relaxed mt-8 pt-8 border-t border-white/5">
+                        {modelAnswer}
+                      </p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            </div>
+          )}
+        </div>
+
+        {/* ── Actions ──────────────────────────────── */}
+        <div className="relative z-10 flex justify-center gap-6 mt-16">
+          <Link
+            to="/onboarding"
+            className="px-10 py-4 bg-primary-container text-white rounded-xl font-semibold text-sm tracking-widest uppercase hover:brightness-110 transition-all active:scale-95"
+          >
+            Start New Interview
           </Link>
-          <Link to="/dashboard">
-            <Button variant="secondary">BACK TO DASHBOARD</Button>
+          <Link
+            to="/dashboard"
+            className="px-10 py-4 bg-surface-container-high text-white rounded-xl font-semibold text-sm tracking-widest uppercase border border-white/5 hover:bg-surface-container-highest transition-all active:scale-95"
+          >
+            Back to Dashboard
           </Link>
         </div>
-      </div>
-    </PageWrapper>
+      </main>
+
+      {/* ── Footer ─────────────────────────────── */}
+      <footer className="w-full py-12 px-8 border-t border-white/5 bg-surface-container-lowest">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-6 w-full max-w-screen-2xl mx-auto">
+          <div className="font-semibold text-neutral-200 text-lg tracking-tighter">
+            ORION <span className="text-[#F03E2F]">AI</span>
+          </div>
+          <div className="flex gap-8 text-sm tracking-wide text-neutral-500">
+            <a className="hover:text-[#F03E2F] transition-colors" href="#">Privacy Policy</a>
+            <a className="hover:text-[#F03E2F] transition-colors" href="#">Terms of Service</a>
+            <a className="hover:text-[#F03E2F] transition-colors" href="#">Executive Support</a>
+          </div>
+          <p className="text-sm tracking-wide text-neutral-500 opacity-80">
+            © 2024 ORION AI. Built for the Structural Architect.
+          </p>
+        </div>
+      </footer>
+    </div>
   );
 }
-
-// Ready for: real feedback data from /api/feedback/:sessionId
