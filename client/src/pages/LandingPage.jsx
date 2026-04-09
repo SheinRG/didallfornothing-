@@ -49,7 +49,7 @@ export default function LandingPage() {
                 >
                   <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                   <span className="text-[11px] tracking-[0.2em] text-[#aaa] font-semibold uppercase">
-                    SYSTEM STATUS: ACTIVE_OPTIMIZATION
+                    READY TO START
                   </span>
                 </motion.div>
 
@@ -88,7 +88,7 @@ export default function LandingPage() {
                       whileTap={{ scale: 0.96 }}
                       className="px-8 py-5 bg-gradient-to-b from-[#E8563B] to-[#C23C23] text-white font-bold tracking-widest text-[15px] rounded-full transition-all"
                     >
-                      START SESSION
+                      GET STARTED
                     </motion.button>
                   </Link>
                   <Link to="/dashboard">
@@ -97,7 +97,7 @@ export default function LandingPage() {
                       whileTap={{ scale: 0.96 }}
                       className="px-10 py-5 bg-[#1C1C1C] text-white font-bold tracking-[0.12em] text-[15px] rounded-full border border-[#333] transition-all"
                     >
-                      DEMO
+                      TRY DEMO
                     </motion.button>
                   </Link>
                 </motion.div>
@@ -157,7 +157,7 @@ export default function LandingPage() {
                     <img src={image3} alt="User" className="w-full h-full object-cover" />
                   </div>
                   <div>
-                    <div className="text-[10px] tracking-[0.2em] text-emerald-400 font-bold mb-1">ACTIVE LEADER</div>
+                    <div className="text-[10px] tracking-[0.2em] text-emerald-400 font-bold mb-1">DASHBOARD</div>
                     <div className="text-sm font-bold text-white">MARCUS VANCE</div>
                   </div>
                   <div className="ml-auto w-3 h-3 rounded-full bg-emerald-500" />
@@ -197,12 +197,12 @@ export default function LandingPage() {
             </div>
             <div className="flex items-center gap-3 mb-6">
               <Mic className="text-orion-red" size={22} />
-              <h2 className="text-xl font-bold tracking-tight">INTERVIEW SIMULATION</h2>
+              <h2 className="text-xl font-bold tracking-tight">INTERVIEW PRACTICE</h2>
             </div>
             <p className="text-[#888] text-base max-w-md mb-12 leading-relaxed">
-              High-fidelity linguistic environments that replicate the pressure
-              of Fortune 500 negotiations. Real-time stress analysis and
-              adaptive difficulty scaling.
+              Practise with realistic questions tailored to your target role. 
+              Get immediate feedback on your answers and track your progress 
+              over time.
             </p>
             <div className="flex gap-16">
               <div>
@@ -227,12 +227,11 @@ export default function LandingPage() {
           >
             <div className="flex items-center gap-3 mb-6">
               <BarChart className="text-orion-red" size={22} />
-              <h2 className="text-lg font-bold tracking-tight">AI-DRIVEN ANALYSIS</h2>
+              <h2 className="text-lg font-bold tracking-tight">AI-DRIVEN FEEDBACK</h2>
             </div>
             <p className="text-[#888] mb-8 leading-relaxed text-sm">
-              Deconstruct every syllable. Our engine parses sentiment, logic
-              flow, and tonal authority to provide actionable structural
-              feedback.
+              We analyze your responses for clarity, relevance, and structure. 
+              Get actionable feedback to help you refine your communication style.
             </p>
             <div className="flex items-end gap-2 h-24 mt-auto">
               {[40, 70, 45, 90, 60, 100].map((h, i) => (
@@ -260,12 +259,12 @@ export default function LandingPage() {
               viewport={{ once: true, margin: '-80px' }}
             >
               <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight mb-8">
-                EXECUTIVE<br />WORKBENCH
+                YOUR<br />DASHBOARD
               </h2>
               <p className="text-lg text-[#888] mb-10 leading-relaxed max-w-md">
-                The ultimate preparation environment. Map out organizational
-                hierarchies, prepare for structural questioning, and archive
-                your growth journeys.
+                The ultimate preparation environment. Track your interview 
+                history, upload your resume for tailored questions, and see 
+                your growth over time.
               </p>
 
               <ul className="space-y-5">
@@ -318,7 +317,7 @@ export default function LandingPage() {
           >
             <Activity className="text-white/80 mx-auto mb-6" size={44} />
             <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight mb-10 max-w-2xl mx-auto">
-              READY TO LEAD?
+              READY TO ACE IT?
             </h2>
             <Link to="/register">
               <motion.button
@@ -326,7 +325,7 @@ export default function LandingPage() {
                 whileTap={{ scale: 0.95 }}
                 className="px-12 py-5 bg-white text-orion-dark font-bold tracking-[0.15em] text-sm rounded-full transition-all hover:bg-gray-100"
               >
-                GAIN ACCESS NOW
+                SIGN UP NOW
               </motion.button>
             </Link>
           </motion.div>

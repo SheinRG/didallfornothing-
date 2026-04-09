@@ -23,6 +23,16 @@ const userSchema = new mongoose.Schema({
     enum: ['swe', 'pm', 'design', 'marketing'],
     default: null,
   },
+  resumeData: {
+    rawText: { type: String, default: null },
+    name: { type: String, default: null },
+    detectedRole: { type: String, default: null },
+    skills: { type: [String], default: [] },
+    experienceLevel: { type: String, default: null },
+    projects: { type: [String], default: [] },
+    summary: { type: String, default: null },
+    uploadedAt: { type: Date, default: null },
+  },
   createdAt: {
     type: Date,
     default: Date.now,

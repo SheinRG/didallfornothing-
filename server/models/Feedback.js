@@ -31,6 +31,10 @@ const feedbackSchema = new mongoose.Schema({
     type: String,
     default: '',
   },
+  starFeedback: {
+    type: String,
+    default: '',
+  },
   modelAnswer: {
     type: String,
     default: '',

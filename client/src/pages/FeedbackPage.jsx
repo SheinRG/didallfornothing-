@@ -72,16 +72,16 @@ export default function FeedbackPage() {
     );
   }
 
-  const { scores, overallScore, fillerWordCount, feedback, modelAnswer } = feedbackData;
+  const { scores, overallScore, fillerWordCount, feedback, starFeedback, modelAnswer } = feedbackData;
 
   return (
     <PageWrapper className="flex flex-col items-center px-6 py-16">
       <div className="w-full max-w-3xl">
         <h1 className="text-4xl font-extrabold tracking-tight text-white mb-2 text-center uppercase">
-          PERFORMANCE TELEMETRY
+          INTERVIEW FEEDBACK
         </h1>
         <p className="text-[#888] leading-relaxed mb-12 text-center border-b border-[#222] pb-8">
-          Review the structural and tonal analysis of your latest scenario.
+          Review your performance and areas for improvement.
         </p>
 
         {/* ── Overall score ────────────────────────────── */}
@@ -110,11 +110,22 @@ export default function FeedbackPage() {
         {/* ── Written feedback ─────────────────────────── */}
         <Card className="mb-8">
           <h3 className="text-[11px] font-bold tracking-[0.2em] text-[#888] mb-4">
-            STRUCTURAL FEEDBACK
+            DETAILED FEEDBACK
           </h3>
-          <p className="text-[15px] text-white leading-relaxed">
+          <p className="text-[15px] text-white leading-relaxed mb-6">
             {feedback}
           </p>
+
+          {starFeedback && (
+            <>
+              <h3 className="text-[11px] font-bold tracking-[0.2em] text-[#888] mb-4">
+                STAR METHOD ANALYSIS
+              </h3>
+              <p className="text-[15px] text-[#E8563B] leading-relaxed">
+                {starFeedback}
+              </p>
+            </>
+          )}
         </Card>
 
         {/* ── Model answer accordion ───────────────────── */}
@@ -124,7 +135,7 @@ export default function FeedbackPage() {
             className="w-full flex items-center justify-between text-left focus:outline-none"
           >
             <h3 className="text-[11px] font-bold tracking-[0.2em] text-[#888]">
-              OPTIMAL EXECUTION LOGIC
+              SAMPLE ANSWER
             </h3>
             <motion.span
               animate={{ rotate: modelOpen ? 180 : 0 }}
@@ -155,10 +166,10 @@ export default function FeedbackPage() {
         {/* ── Actions ──────────────────────────────────── */}
         <div className="flex justify-center gap-6">
           <Link to="/onboarding">
-            <Button variant="primary">INITIALIZE NEW SCENARIO</Button>
+            <Button variant="primary">START NEW INTERVIEW</Button>
           </Link>
           <Link to="/dashboard">
-            <Button variant="secondary">RETURN TO DASHBOARD</Button>
+            <Button variant="secondary">BACK TO DASHBOARD</Button>
           </Link>
         </div>
       </div>

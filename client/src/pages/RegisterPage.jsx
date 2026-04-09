@@ -33,10 +33,10 @@ export default function RegisterPage() {
       >
         <div className="flex flex-col items-center mb-10 text-center">
             <h1 className="text-3xl font-extrabold tracking-tight text-white mb-3">
-              Request Clearance
+              Sign Up
             </h1>
             <p className="text-[#888] leading-relaxed">
-              Create an operative profile to start running advanced AI simulation scenarios.
+              Create an account to start practicing for your next interview.
             </p>
         </div>
 
@@ -48,7 +48,7 @@ export default function RegisterPage() {
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
           <Input
-            label="Operative Designation"
+            label="Your Name"
             name="name"
             placeholder="Marcus Vance"
             required
@@ -56,7 +56,7 @@ export default function RegisterPage() {
             onChange={handleChange}
           />
           <Input
-            label="Authorization Email"
+            label="Email Address"
             name="email"
             type="email"
             placeholder="operative@orion.com"
@@ -65,7 +65,7 @@ export default function RegisterPage() {
             onChange={handleChange}
           />
           <Input
-            label="Passphrase"
+            label="Password"
             name="password"
             type="password"
             placeholder="••••••••"
@@ -74,14 +74,14 @@ export default function RegisterPage() {
             onChange={handleChange}
           />
           <Button type="submit" variant="primary" className="w-full mt-4" disabled={loading}>
-            {loading ? 'PROCESSING...' : 'REQUEST ACCESS'}
+            {loading ? 'SIGNING UP...' : 'SIGN UP'}
           </Button>
         </form>
 
         <p className="text-sm text-[#888] mt-8 text-center font-medium">
-          ALREADY AUTHORIZED?{' '}
+          ALREADY HAVE AN ACCOUNT?{' '}
           <Link to="/login" className="text-[#E8563B] font-bold hover:underline transition-all">
-            INITIALIZE CONNECTION
+            LOGIN
           </Link>
         </p>
       </motion.div>

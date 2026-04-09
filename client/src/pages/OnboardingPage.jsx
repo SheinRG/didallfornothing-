@@ -31,6 +31,10 @@ const steps = [
       { value: 'case-study', label: 'Case Study', icon: '📊' },
     ],
   },
+  {
+    title: 'Job Description (Optional)',
+    type: 'textarea',
+  },
 ];
 
 const cardVariants = {
@@ -53,34 +57,41 @@ export default function OnboardingPage() {
   const [loading, setLoading] = useState(false);
 
   const handleSelect = async (value) => {
-    const keys = ['role', 'level', 'interviewType'];
+    const keys = ['role', 'level', 'interviewType', 'jobDescription'];
     const updated = { ...selections, [keys[currentStep]]: value };
     setSelections(updated);
-
+    
+    // For text area step, value is maintained in local state before proceeding
     if (currentStep + 1 < steps.length) {
       setCurrentStep((prev) => prev + 1);
     } else {
-      setLoading(true);
-      try {
-        const response = await fetch('http://localhost:5000/api/sessions', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify(updated),
-        });
+      submitOnboarding(updated);
+    }
+  };
+
+  const submitOnboarding = async (finalSelections) => {
+    setLoading(true);
+    try {
+      const response = await fetch('http://localhost:5000/api/sessions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(finalSelections),
+      });
 
         const data = await response.json();
         if (!response.ok) throw new Error(data.message || 'Onboarding failed');
 
         navigate('/interview', { state: { sessionId: data.session._id } });
-      } catch (err) {
-        console.error('Onboarding session error:', err);
-        alert('Failed to start session. Please try again.');
-      } finally {
-        setLoading(false);
-      }
+    } catch (err) {
+      console.error('Onboarding session error:', err);
+      alert('Failed to start session. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
+
+  const [jdText, setJdText] = useState('');
 
   return (
     <PageWrapper className="flex flex-col items-center px-6 py-16">
@@ -96,7 +107,7 @@ export default function OnboardingPage() {
           />
         </div>
         <p className="text-[11px] font-bold tracking-[0.2em] text-[#888] mt-4 text-center">
-          INITIALIZATION STEP {currentStep + 1} OF {steps.length}
+          STEP {currentStep + 1} OF {steps.length}
         </p>
       </div>
 
@@ -114,32 +125,51 @@ export default function OnboardingPage() {
             {step.title.toUpperCase()}
           </h2>
 
-          <motion.div
-            className="grid grid-cols-2 gap-4"
-            variants={containerVariants}
-            initial="initial"
-            animate="animate"
-          >
-            {step.options.map((option) => (
-              <motion.button
-                key={option.value}
-                variants={cardVariants}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={() => handleSelect(option.value)}
-                className={`flex flex-col items-center gap-4 rounded-2xl border p-8 transition-colors cursor-pointer ${
-                  selections[['role', 'level', 'interviewType'][currentStep]] === option.value
-                    ? 'border-[#E8563B] bg-[#E8563B]/10 shadow-[0_0_15px_rgba(232,86,59,0.2)]'
-                    : 'border-[#333] bg-[#1a1a1a] hover:border-[#666]'
-                }`}
+          {step.type === 'textarea' ? (
+            <div className="flex flex-col gap-4">
+              <textarea
+                className="w-full bg-[#1A1A1A] border border-[#333] rounded-xl p-4 text-white resize-none focus:outline-none focus:border-[#E8563B] transition-colors"
+                rows={6}
+                placeholder="Paste the job description here to get highly targeted questions (or leave blank to skip)..."
+                value={jdText}
+                onChange={(e) => setJdText(e.target.value)}
+              />
+              <Button 
+                variant="primary" 
+                onClick={() => handleSelect(jdText)}
+                disabled={loading}
               >
-                <span className="text-4xl drop-shadow-xl">{option.icon}</span>
-                <span className="text-sm font-bold tracking-wide text-white">
-                  {option.label.toUpperCase()}
-                </span>
-              </motion.button>
-            ))}
-          </motion.div>
+                {loading ? 'STARTING...' : (jdText ? 'USE THIS JD & START' : 'SKIP & START')}
+              </Button>
+            </div>
+          ) : (
+            <motion.div
+              className="grid grid-cols-2 gap-4"
+              variants={containerVariants}
+              initial="initial"
+              animate="animate"
+            >
+              {step.options.map((option) => (
+                <motion.button
+                  key={option.value}
+                  variants={cardVariants}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => handleSelect(option.value)}
+                  className={`flex flex-col items-center gap-4 rounded-2xl border p-8 transition-colors cursor-pointer ${
+                    selections[['role', 'level', 'interviewType'][currentStep]] === option.value
+                      ? 'border-[#E8563B] bg-[#E8563B]/10 shadow-[0_0_15px_rgba(232,86,59,0.2)]'
+                      : 'border-[#333] bg-[#1a1a1a] hover:border-[#666]'
+                  }`}
+                >
+                  <span className="text-4xl drop-shadow-xl">{option.icon}</span>
+                  <span className="text-sm font-bold tracking-wide text-white">
+                    {option.label.toUpperCase()}
+                  </span>
+                </motion.button>
+              ))}
+            </motion.div>
+          )}
         </motion.div>
       </AnimatePresence>
 

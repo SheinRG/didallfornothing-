@@ -4,15 +4,21 @@ const API_BASE_URL = 'http://localhost:5000/api';
 
 /**
  * useInterview — manages interview flow state for a given sessionId.
- * Fetches questions from /api/sessions/:id and tracks responses.
+ * Fetches questions from /api/sessions/:id, tracks responses,
+ * and maintains a full conversation history for the transcript panel.
  */
 export default function useInterview(sessionId) {
   const [questions, setQuestions] = useState([]);
+  const [isAiGenerated, setIsAiGenerated] = useState(false);
+  const [isResumeTailored, setIsResumeTailored] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState([]);
   const [isComplete, setIsComplete] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  // Conversation history: array of { role: 'coach' | 'user', text: string }
+  const [conversationHistory, setConversationHistory] = useState([]);
 
   // ── Fetch session questions ───────────────────────────
   useEffect(() => {
@@ -28,7 +34,17 @@ export default function useInterview(sessionId) {
         const data = await response.json();
         if (!response.ok) throw new Error(data.message || 'Failed to load session');
         
-        setQuestions(data.session.questions || []);
+        const fetchedQuestions = data.session.questions || [];
+        setQuestions(fetchedQuestions);
+        setIsAiGenerated(data.session.isAiGenerated || false);
+        setIsResumeTailored(data.session.isResumeTailored || false);
+
+        // Seed the conversation with the first question
+        if (fetchedQuestions.length > 0) {
+          setConversationHistory([
+            { role: 'coach', text: fetchedQuestions[0] },
+          ]);
+        }
       } catch (err) {
         setError(err.message);
       } finally {
@@ -44,25 +60,51 @@ export default function useInterview(sessionId) {
 
   const nextQuestion = useCallback(
     (answer = '') => {
+      // Push the user's answer into conversation history
+      setConversationHistory((prev) => [
+        ...prev,
+        { role: 'user', text: answer || '(no response)' },
+      ]);
+
       setAnswers((prev) => [...prev, answer]);
 
       if (currentIndex + 1 >= totalQuestions) {
         setIsComplete(true);
       } else {
-        setCurrentIndex((prev) => prev + 1);
+        const nextIdx = currentIndex + 1;
+        setCurrentIndex(nextIdx);
+
+        // Push the next AI question into conversation history
+        setConversationHistory((prev) => [
+          ...prev,
+          { role: 'coach', text: questions[nextIdx] },
+        ]);
       }
     },
-    [currentIndex, totalQuestions]
+    [currentIndex, totalQuestions, questions]
   );
+
+  const insertNextQuestion = useCallback((newQuestion) => {
+    setQuestions((prev) => {
+      const copy = [...prev];
+      copy.splice(currentIndex + 1, 0, newQuestion);
+      return copy;
+    });
+  }, [currentIndex]);
 
   const reset = useCallback(() => {
     setCurrentIndex(0);
     setAnswers([]);
     setIsComplete(false);
-  }, []);
+    setConversationHistory(
+      questions.length > 0 ? [{ role: 'coach', text: questions[0] }] : []
+    );
+  }, [questions]);
 
   return {
     questions,
+    isAiGenerated,
+    isResumeTailored,
     currentQuestion,
     currentIndex,
     totalQuestions,
@@ -70,7 +112,9 @@ export default function useInterview(sessionId) {
     isComplete,
     loading,
     error,
+    conversationHistory,
     nextQuestion,
+    insertNextQuestion,
     reset,
   };
 }

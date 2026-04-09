@@ -33,10 +33,10 @@ export default function LoginPage() {
       >
         <div className="flex flex-col items-center mb-10 text-center">
             <h1 className="text-3xl font-extrabold tracking-tight text-white mb-3">
-              System Access
+              Login
             </h1>
             <p className="text-[#888] leading-relaxed">
-              Authenticate to initialize your executive interview simulation environment.
+              Sign in to start practicing for your next interview.
             </p>
         </div>
 
@@ -48,7 +48,7 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
           <Input
-            label="Authorization Email"
+            label="Email Address"
             name="email"
             type="email"
             placeholder="operative@orion.com"
@@ -57,7 +57,7 @@ export default function LoginPage() {
             onChange={handleChange}
           />
           <Input
-            label="Passphrase"
+            label="Password"
             name="password"
             type="password"
             placeholder="••••••••"
@@ -66,14 +66,14 @@ export default function LoginPage() {
             onChange={handleChange}
           />
           <Button type="submit" variant="primary" className="w-full mt-4" disabled={loading}>
-            {loading ? 'AUTHENTICATING...' : 'INITIALIZE CONNECTION'}
+            {loading ? 'LOGGING IN...' : 'LOGIN'}
           </Button>
         </form>
 
         <p className="text-sm text-[#888] mt-8 text-center font-medium">
-          NOT REGISTERED YET?{' '}
+          DON'T HAVE AN ACCOUNT?{' '}
           <Link to="/register" className="text-[#E8563B] font-bold hover:underline transition-all">
-            REQUEST CLEARANCE
+            SIGN UP
           </Link>
         </p>
       </motion.div>

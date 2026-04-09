@@ -11,6 +11,8 @@ import dotenv from 'dotenv';
 import authRoutes from './routes/auth.js';
 import sessionRoutes from './routes/sessions.js';
 import feedbackRoutes from './routes/feedback.js';
+import ttsRoutes from './routes/tts.js';
+import resumeRoutes from './routes/resume.js';
 
 import mongoose from 'mongoose';
 
@@ -52,6 +54,8 @@ app.use(cookieParser());
 app.use('/api/auth', authRoutes);
 app.use('/api/sessions', sessionRoutes);
 app.use('/api/feedback', feedbackRoutes);
+app.use('/api/tts', ttsRoutes);
+app.use('/api/resume', resumeRoutes);
 
 // ── Health check ────────────────────────────────────────
 app.get('/api/health', (_req, res) => {
@@ -61,4 +65,5 @@ app.get('/api/health', (_req, res) => {
 // ── Start ───────────────────────────────────────────────
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log('API Key loaded successfully!');
 });

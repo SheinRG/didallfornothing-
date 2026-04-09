@@ -1,6 +1,6 @@
 import Feedback from '../models/Feedback.js';
 import Session from '../models/Session.js';
-import { analyseAnswer } from '../services/claudeService.js';
+import { analyseAnswer } from '../services/groqService.js';
 
 /**
  * POST /api/feedback
@@ -21,12 +21,15 @@ export const createFeedback = async (req, res) => {
     session.answers = answers;
     await session.save();
 
-    // For simplicity, we analyze the last answer or provide a general analysis.
-    // In a real app, we'd analyze each answer.
-    const lastQuestion = session.questions[session.questions.length - 1];
-    const lastAnswer = answers[answers.length - 1];
+    // Combine all questions and answers into a transcript
+    let transcript = '';
+    for (let i = 0; i < session.questions.length; i++) {
+      if (answers[i]) {
+        transcript += `Q: ${session.questions[i]}\nA: ${answers[i]}\n\n`;
+      }
+    }
 
-    const analysis = await analyseAnswer(lastQuestion, lastAnswer);
+    const analysis = await analyseAnswer(transcript);
 
     const feedback = await Feedback.create({
       sessionId,
@@ -37,9 +40,10 @@ export const createFeedback = async (req, res) => {
         structure: analysis.structure,
         confidence: analysis.confidence,
       },
-      fillerWordCount: analysis.fillerWords,
+      fillerWordCount: analysis.fillerWordCount,
       overallScore: analysis.overallScore,
       feedback: analysis.feedback,
+      starFeedback: analysis.starFeedback, // new field
       modelAnswer: analysis.modelAnswer,
     });
 
@@ -64,5 +68,25 @@ export const getFeedbackBySession = async (req, res) => {
     res.status(200).json({ feedback });
   } catch (err) {
     res.status(500).json({ message: 'Error fetching feedback' });
+  }
+};
+
+/**
+ * GET /api/feedback/stats
+ * Return aggregated feedback stats for readiness score.
+ */
+export const getFeedbackStats = async (req, res) => {
+  try {
+    const feedbacks = await Feedback.find({ userId: req.user.userId }).sort({ createdAt: 1 });
+    if (!feedbacks.length) {
+      return res.status(200).json({ averageScore: 0, trend: [] });
+    }
+
+    const trend = feedbacks.map(f => f.overallScore);
+    const averageScore = Math.round(trend.reduce((a, b) => a + b, 0) / trend.length);
+
+    res.status(200).json({ averageScore, trend });
+  } catch (err) {
+    res.status(500).json({ message: 'Error fetching feedback stats' });
   }
 };

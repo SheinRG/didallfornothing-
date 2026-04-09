@@ -16,6 +16,10 @@ const sessionSchema = new mongoose.Schema({
     enum: ['intern', 'junior', 'mid', 'senior'],
     required: true,
   },
+  jobDescription: {
+    type: String,
+    default: '',
+  },
   interviewType: {
     type: String,
     enum: ['behavioral', 'technical', 'case-study'],
@@ -24,6 +28,14 @@ const sessionSchema = new mongoose.Schema({
   questions: {
     type: [String],
     default: [],
+  },
+  isAiGenerated: {
+    type: Boolean,
+    default: false,
+  },
+  isResumeTailored: {
+    type: Boolean,
+    default: false,
   },
   answers: {
     type: [String],
