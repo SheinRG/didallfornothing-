@@ -1,4 +1,5 @@
 import Session from '../models/Session.js';
+import Feedback from '../models/Feedback.js';
 import User from '../models/User.js';
 import { generateQuestions, generateHint, generateFollowUp } from '../services/groqService.js';
 
@@ -115,5 +116,28 @@ export const getFollowUp = async (req, res) => {
     res.status(200).json({ followup });
   } catch (err) {
     res.status(500).json({ message: 'Error generating follow-up' });
+  }
+};
+
+/**
+ * DELETE /api/sessions/:id
+ * Delete a session and its associated feedback.
+ */
+export const deleteSession = async (req, res) => {
+  try {
+    const session = await Session.findOneAndDelete({ 
+      _id: req.params.id, 
+      userId: req.user.userId 
+    });
+    
+    if (!session) return res.status(404).json({ message: 'Session not found' });
+
+    // Also delete any feedback for this session
+    await Feedback.deleteMany({ sessionId: req.params.id, userId: req.user.userId });
+
+    res.status(200).json({ message: 'Session deleted successfully' });
+  } catch (err) {
+    console.error('Delete Session Error:', err);
+    res.status(500).json({ message: 'Error deleting session' });
   }
 };

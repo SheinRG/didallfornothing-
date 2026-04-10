@@ -361,9 +361,29 @@ Keep the question under 2 sentences. Do NOT praise them, just ask the follow-up 
       max_tokens: 150,
     });
 
-    return completion.choices[0]?.message?.content?.trim() || "Can you elaborate more on that?";
+    return completion.choices[0]?.message?.content?.trim() || "Can you elaborate more on your thought process there?";
   } catch (err) {
     console.error('Follow-up generation error:', err.message);
     return "Can you elaborate more on your thought process there?";
   }
+}
+
+/**
+ * transcribeAudio(fileStream)
+ * Transcribes audio using Groq Whisper-large-v3.
+ */
+export async function transcribeAudio(fileStream) {
+  if (!process.env.GROQ_API_KEY) {
+    throw new Error('GROQ_API_KEY is not configured');
+  }
+
+  const transcription = await groq.audio.transcriptions.create({
+    file: fileStream,
+    model: 'whisper-large-v3',
+    response_format: 'json',
+    language: 'en',
+    temperature: 0.0,
+  });
+
+  return transcription.text;
 }

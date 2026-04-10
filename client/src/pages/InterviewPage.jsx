@@ -97,15 +97,15 @@ export default function InterviewPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [transcript, isListening, isSpeaking, viewIndex, currentIndex]);
 
-  const handleMicClick = () => {
+  const handleMicClick = async () => {
     if (viewIndex !== currentIndex) return; // Ignore if looking at past questions
     if (isSpeaking) stopSpeaking(); // Stop AI voice if it's still talking
-    if (isListening) stop();
+    if (isListening) await stop();
     else start();
   };
 
-  const handleEndTest = () => {
-    stop();
+  const handleEndTest = async () => {
+    await stop();
     stopSpeaking();
     clearTimeout(silenceTimerRef.current);
     navigate('/dashboard');
@@ -139,16 +139,17 @@ export default function InterviewPage() {
   };
 
   const handleNext = async () => {
-    stop(); // Ensure mic is off
-    stopSpeaking(); // Stop TTS if playing
+    const finalTranscript = await stop(); 
+    stopSpeaking();
     clearTimeout(silenceTimerRef.current);
 
     const isLast = currentIndex + 1 >= totalQuestions;
+    const currentAnswer = finalTranscript || transcript;
 
     if (isLast) {
       setSubmitting(true);
       try {
-        const fullAnswers = [...answers, transcript];
+        const fullAnswers = [...answers, currentAnswer];
         const response = await fetch('http://localhost:5000/api/feedback', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -167,14 +168,14 @@ export default function InterviewPage() {
       setHint(''); // Clear hint for next question
 
       // Optional logic to dynamically insert a follow-up question
-      if (transcript && transcript.length > 20 && totalQuestions < 8 && Math.random() > 0.5) {
+        if (currentAnswer && currentAnswer.length > 20 && totalQuestions < 8 && Math.random() > 0.5) {
         setSubmitting(true);
         try {
           const response = await fetch(`http://localhost:5000/api/sessions/${sessionId}/followup`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
-            body: JSON.stringify({ question: questions[currentIndex], answer: transcript }),
+            body: JSON.stringify({ question: questions[currentIndex], answer: currentAnswer }),
           });
           const data = await response.json();
           if (response.ok && data.followup) {
@@ -184,10 +185,10 @@ export default function InterviewPage() {
           console.error(err);
         } finally {
           setSubmitting(false);
-          nextQuestion(transcript); // advance index to the newly inserted follow up
+          nextQuestion(currentAnswer); // advance index to the newly inserted follow up
         }
       } else {
-        nextQuestion(transcript); // standard progression
+        nextQuestion(currentAnswer); // standard progression
       }
     }
   };

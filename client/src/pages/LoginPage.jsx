@@ -36,22 +36,33 @@ export default function LoginPage() {
     }
   };
 
+  const container = {
+    hidden: { opacity: 0, y: 20 },
+    show: {
+      opacity: 1, y: 0, transition: { duration: 0.5, staggerChildren: 0.1 }
+    }
+  };
+  const item = {
+    hidden: { opacity: 0, y: 15 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.4 } }
+  };
+
   return (
     <PageWrapper className="flex items-center justify-center px-6">
       <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
+        variants={container}
+        initial="hidden"
+        animate="show"
         className="w-full max-w-md bg-[#111]/80 backdrop-blur-md border border-[#222] rounded-3xl p-10 shadow-2xl"
       >
-        <div className="flex flex-col items-center mb-10 text-center">
+        <motion.div variants={item} className="flex flex-col items-center mb-10 text-center">
             <h1 className="text-3xl font-extrabold tracking-tight text-white mb-3">
               Login
             </h1>
             <p className="text-[#888] leading-relaxed">
               Sign in to start practicing for your next interview.
             </p>
-        </div>
+        </motion.div>
 
         {error && (
           <div className="mb-6 p-4 text-sm text-red-400 bg-red-400/10 border border-red-400/20 rounded-xl">
@@ -59,7 +70,7 @@ export default function LoginPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+        <motion.form variants={item} onSubmit={handleSubmit} className="flex flex-col gap-6">
           <Input
             label="Email Address"
             name="email"
@@ -98,14 +109,14 @@ export default function LoginPage() {
             </svg>
             Continue with Google
           </Button>
-        </form>
+        </motion.form>
 
-        <p className="text-sm text-[#888] mt-8 text-center font-medium">
+        <motion.p variants={item} className="text-sm text-[#888] mt-8 text-center font-medium">
           DON'T HAVE AN ACCOUNT?{' '}
           <Link to="/register" className="text-[#E8563B] font-bold hover:underline transition-all">
             SIGN UP
           </Link>
-        </p>
+        </motion.p>
       </motion.div>
     </PageWrapper>
   );

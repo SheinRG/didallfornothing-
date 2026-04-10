@@ -38,6 +38,7 @@
   .theme-light .text-\[\#555\] { color: #888 !important; }
   .theme-light .text-white\/90 { color: rgba(0,0,0,0.8) !important; }
   .theme-light .text-white\/80 { color: rgba(0,0,0,0.7) !important; }
+  .theme-light .text-blue-100 { color: #1e3a8a !important; }
 
   /* BACKGROUNDS */
   .theme-light .bg-white\/5 { background-color: rgba(0, 0, 0, 0.05) !important; }

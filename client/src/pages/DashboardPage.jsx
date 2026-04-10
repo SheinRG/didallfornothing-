@@ -91,6 +91,28 @@ export default function DashboardPage() {
     }));
   };
 
+  const handleDeleteSession = async (sessionId) => {
+    if (!window.confirm('Are you sure you want to delete this session? This will also delete the associated feedback.')) return;
+    
+    try {
+      const res = await fetch(`${API}/sessions/${sessionId}`, { 
+        method: 'DELETE', 
+        credentials: 'include' 
+      });
+      if (res.ok) {
+        setSessions(sessions.filter(s => s._id !== sessionId));
+        // Also refresh stats to be safe
+        const statsRes = await fetch(`${API}/feedback/stats`, { credentials: 'include' });
+        const statsData = await statsRes.json();
+        if (statsRes.ok) setStats(statsData);
+      } else {
+        alert('Failed to delete session');
+      }
+    } catch (err) {
+      console.error('Delete error:', err);
+    }
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -194,17 +216,34 @@ export default function DashboardPage() {
         </div>
       </header>
 
+
+
       {/* Main Content Canvas */}
-      <main className="pt-40 pb-16 px-6 md:px-10 max-w-[1200px] mx-auto">
+      <motion.main 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, staggerChildren: 0.1 }}
+        className="pt-40 pb-16 px-6 md:px-10 max-w-[1200px] mx-auto"
+      >
         {/* Welcome Section */}
-        <section className="mb-14 text-center md:text-left">
+        <motion.section 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+          className="mb-14 text-center md:text-left"
+        >
           <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight text-white mb-4">
             Welcome back, <Cover className="text-[#e04f32]">{userName}</Cover>
           </h2>
           <p className="text-zinc-500 text-xs font-medium tracking-[0.3em] uppercase opacity-80">Your AI coaching terminal is synchronized and ready.</p>
-        </section>
+        </motion.section>
 
-        <div className="grid grid-cols-12 gap-10">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="grid grid-cols-12 gap-10"
+        >
           {/* Left Column */}
           <div className="col-span-12 xl:col-span-5 space-y-10">
             {/* Readiness Score Card */}
@@ -310,9 +349,9 @@ export default function DashboardPage() {
                           {session.jobDescription?.split('\n')[0] || `${roleLabels[session.role] || 'General'} Professional Assessment`}
                         </h4>
                         <div className="flex items-center gap-8 text-zinc-500 text-xs font-semibold">
-                          <div className="flex items-center gap-2">
+                          <div className="flex flex-wrap items-center gap-2">
                             <span className="material-symbols-outlined text-base opacity-70">calendar_today</span>
-                            <span>{new Date(session.createdAt).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }).toUpperCase()}</span>
+                            <span>{new Date(session.createdAt).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }).toUpperCase()} • {new Date(session.createdAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }).toUpperCase()}</span>
                           </div>
                           <div className="flex items-center gap-2">
                             <span className="material-symbols-outlined text-base opacity-70">quiz</span>
@@ -320,20 +359,29 @@ export default function DashboardPage() {
                           </div>
                         </div>
                       </div>
-                      <Link
-                        to={`/feedback/${session._id}`}
-                        className="self-start md:self-center px-8 py-3.5 bg-[#e04f32] text-white text-[10px] font-semibold uppercase tracking-widest rounded-full transition-transform duration-300 hover:scale-105 text-center"
-                      >
-                        View Feedback
-                      </Link>
+                      <div className="flex items-center gap-4 self-start md:self-center">
+                        <Link
+                          to={`/feedback/${session._id}`}
+                          className="px-8 py-3.5 bg-[#e04f32] text-white text-[10px] font-semibold uppercase tracking-widest rounded-full transition-transform duration-300 hover:scale-105 text-center"
+                        >
+                          View Feedback
+                        </Link>
+                        <button
+                          onClick={() => handleDeleteSession(session._id)}
+                          className="w-11 h-11 flex items-center justify-center rounded-full bg-white/5 border border-white/10 text-zinc-500 hover:text-[#e04f32] hover:bg-[#e04f32]/10 transition-all active:scale-90"
+                          title="Delete Session"
+                        >
+                          <span className="material-symbols-outlined text-[20px]">delete</span>
+                        </button>
+                      </div>
                     </div>
                   </motion.div>
                 ))}
               </div>
             )}
           </div>
-        </div>
-      </main>
+        </motion.div>
+      </motion.main>
 
       {/* Footer */}
       <footer className="border-t border-white/5 bg-surface-container-lowest/50 py-12 mt-20">

@@ -13,6 +13,7 @@ import sessionRoutes from './routes/sessions.js';
 import feedbackRoutes from './routes/feedback.js';
 import ttsRoutes from './routes/tts.js';
 import resumeRoutes from './routes/resume.js';
+import sttRoutes from './routes/stt.js';
 
 import mongoose from 'mongoose';
 
@@ -56,6 +57,7 @@ app.use('/api/sessions', sessionRoutes);
 app.use('/api/feedback', feedbackRoutes);
 app.use('/api/tts', ttsRoutes);
 app.use('/api/resume', resumeRoutes);
+app.use('/api/stt', sttRoutes);
 
 // ── Health check ────────────────────────────────────────
 app.get('/api/health', (_req, res) => {

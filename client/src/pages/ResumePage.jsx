@@ -122,17 +122,29 @@ export default function ResumePage() {
     }
   };
 
+  const container = {
+    hidden: { opacity: 0, y: 20 },
+    show: {
+      opacity: 1, y: 0, transition: { duration: 0.5, staggerChildren: 0.1 }
+    }
+  };
+  const item = {
+    hidden: { opacity: 0, y: 15 },
+    show: { opacity: 1, y: 0, transition: { duration: 0.4 } }
+  };
+
   // ── If resume is already analyzed, show summary ────────
   if (resumeData) {
     return (
       <PageWrapper className="flex flex-col items-center px-6 py-16">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
+          variants={container}
+          initial="hidden"
+          animate="show"
           className="w-full max-w-2xl"
         >
           {/* Header */}
-          <div className="text-center mb-10">
+          <motion.div variants={item} className="text-center mb-10">
             <div className="inline-flex items-center gap-2 border border-green-500/30 bg-green-500/10 px-4 py-2 rounded-full mb-6">
               <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
               <span className="text-[10px] font-bold tracking-[0.2em] text-green-400">
@@ -145,10 +157,10 @@ export default function ResumePage() {
             <p className="text-[#888] text-sm">
               Your interview questions will be personalized based on this data.
             </p>
-          </div>
+          </motion.div>
 
           {/* Summary Card */}
-          <div className="bg-[#111] border border-[#222] rounded-3xl p-8 space-y-6">
+          <motion.div variants={item} className="bg-[#111] border border-[#222] rounded-3xl p-8 space-y-6">
             {/* Name & Role */}
             <div className="flex items-start justify-between">
               <div>
@@ -216,17 +228,17 @@ export default function ResumePage() {
                 </div>
               </div>
             )}
-          </div>
+          </motion.div>
 
           {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 mt-8">
+          <motion.div variants={item} className="flex flex-col sm:flex-row gap-4 mt-8">
             <Button variant="primary" className="flex-1" onClick={handleContinue}>
               📄 START INTERVIEW
             </Button>
             <Button variant="secondary" className="flex-1" onClick={handleClearResume}>
               UPLOAD DIFFERENT RESUME
             </Button>
-          </div>
+          </motion.div>
 
           <button
             onClick={() => {
@@ -246,12 +258,13 @@ export default function ResumePage() {
   return (
     <PageWrapper className="flex flex-col items-center px-6 py-16">
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+        variants={container}
+        initial="hidden"
+        animate="show"
         className="w-full max-w-2xl"
       >
         {/* Header */}
-        <div className="text-center mb-10">
+        <motion.div variants={item} className="text-center mb-10">
           <h1 className="text-3xl font-extrabold text-white tracking-tight mb-3">
             Upload Your Resume
           </h1>
@@ -259,7 +272,7 @@ export default function ResumePage() {
             Our AI will analyze your resume and tailor interview questions to your
             specific experience, skills, and projects.
           </p>
-        </div>
+        </motion.div>
 
         {/* Drop Zone */}
         <div
@@ -358,7 +371,7 @@ export default function ResumePage() {
 
         {/* Action Buttons */}
         {!uploading && (
-          <div className="flex flex-col gap-4 mt-8">
+          <motion.div variants={item} className="flex flex-col gap-4 mt-8">
             {file && (
               <Button variant="primary" onClick={handleUpload}>
                 🚀 ANALYZE RESUME
@@ -370,7 +383,7 @@ export default function ResumePage() {
             >
               SKIP — CONTINUE WITHOUT RESUME
             </button>
-          </div>
+          </motion.div>
         )}
       </motion.div>
     </PageWrapper>

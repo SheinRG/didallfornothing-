@@ -1,13 +1,15 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 
 /**
- * useSpeech — wraps the browser-native Web Speech API.
- * Provides start(), stop(), transcript, and isListening state.
+ * useSpeech — wraps the browser-native Web Speech API for live feedback
+ * AND uses MediaRecorder + Groq Whisper for high-accuracy final results.
  */
 export default function useSpeech() {
   const [transcript, setTranscript] = useState('');
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
 
   useEffect(() => {
     const SpeechRecognition =
@@ -24,43 +26,107 @@ export default function useSpeech() {
     recognition.lang = 'en-US';
 
     recognition.onresult = (event) => {
-      let finalTranscript = '';
+      let currentTranscript = '';
       for (let i = 0; i < event.results.length; i++) {
-        finalTranscript += event.results[i][0].transcript;
+        currentTranscript += event.results[i][0].transcript;
       }
-      setTranscript(finalTranscript);
+      setTranscript(currentTranscript);
     };
 
     recognition.onerror = (event) => {
-      console.error('Speech recognition error:', event.error);
-      setIsListening(false);
-    };
-
-    recognition.onend = () => {
-      setIsListening(false);
+      // Ignore some common "errors" that happen on start/stop
+      if (event.error !== 'no-speech' && event.error !== 'aborted') {
+        console.error('Speech recognition error:', event.error);
+      }
     };
 
     recognitionRef.current = recognition;
 
     return () => {
-      recognition.abort();
+      if (recognitionRef.current) recognitionRef.current.abort();
     };
   }, []);
 
-  const start = useCallback(() => {
-    if (recognitionRef.current && !isListening) {
-      setTranscript('');
-      recognitionRef.current.start();
-      setIsListening(true);
+  const start = useCallback(async () => {
+    setTranscript('');
+    setIsListening(true);
+    
+    // 1. Start Browser Recognition (for live UI feedback only)
+    if (recognitionRef.current) {
+      try { 
+        recognitionRef.current.start(); 
+      } catch (e) {
+        console.warn('Recognition already started');
+      }
     }
-  }, [isListening]);
 
-  const stop = useCallback(() => {
-    if (recognitionRef.current && isListening) {
-      recognitionRef.current.stop();
-      setIsListening(false);
+    // 2. Start Raw Audio Recording (for High-Accuracy Whisper)
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      audioChunksRef.current = [];
+      
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) audioChunksRef.current.push(event.data);
+      };
+      
+      mediaRecorder.start();
+      mediaRecorderRef.current = mediaRecorder;
+    } catch (err) {
+      console.error('Mic access error:', err);
     }
-  }, [isListening]);
+  }, []);
+
+  /**
+   * stop()
+   * Stops recording and returns the HIGH-ACCURACY transcript from Groq.
+   */
+  const stop = useCallback(() => {
+    return new Promise((resolve) => {
+      setIsListening(false);
+      
+      // Stop Browser Recognition
+      if (recognitionRef.current) {
+        try { recognitionRef.current.stop(); } catch (e) {}
+      }
+
+      // Stop MediaRecorder and Process Audio
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+        mediaRecorderRef.current.onstop = async () => {
+          const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+          
+          // Cleanup media tracks
+          mediaRecorderRef.current.stream.getTracks().forEach(t => t.stop());
+
+          // Send to Backend for Groq Whisper
+          try {
+            const formData = new FormData();
+            formData.append('audio', audioBlob, 'answer.webm');
+            
+            const response = await fetch('http://localhost:5000/api/stt', {
+              method: 'POST',
+              body: formData,
+            });
+            const data = await response.json();
+            
+            if (data.text) {
+              setTranscript(data.text);
+              resolve(data.text);
+            } else {
+              throw new Error('No text returned');
+            }
+          } catch (err) {
+            console.error('Whisper STT fallback to browser:', err);
+            // Fallback to whatever the browser caught if upload/API failed
+            resolve(transcript);
+          }
+        };
+        mediaRecorderRef.current.stop();
+      } else {
+        resolve(transcript);
+      }
+    });
+  }, [transcript]);
 
   return { transcript, isListening, start, stop };
 }

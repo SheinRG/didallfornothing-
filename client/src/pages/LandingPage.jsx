@@ -268,25 +268,25 @@ export default function LandingPage() {
                 title: 'Real-time Simulation',
                 desc: 'Practice with realistic AI avatars tailored to your role.',
                 id: '#001',
-                img: '/ai_interview_simulation_1775775328826.png'
+                img: '/dual_interview_sim_1775855202541.png'
               },
               {
                 title: 'Granular Feedback',
                 desc: 'Get instant structural analysis for every response.',
                 id: '#002',
-                img: '/real_time_analytics_1775775351679.png'
+                img: '/dual_feedback_1775855216447.png'
               },
               {
                 title: 'Performance History',
                 desc: 'Review your growth with historical session archives.',
                 id: '#003',
-                img: '/personalized_coaching_1775775366314.png'
+                img: '/dual_history_1775855229702.png'
               },
               {
                 title: 'Behavioral Prep',
                 desc: 'Master the STAR method with AI-guided frameworks.',
                 id: '#004',
-                img: '/star_method_prep_1775775381917.png'
+                img: '/dual_behavioral_1775855247551.png'
               }
             ].map((f, i) => (
               <CometCard key={i}>
