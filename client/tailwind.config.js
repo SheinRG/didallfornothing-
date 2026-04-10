@@ -67,5 +67,9 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    function({ addVariant }) {
+      addVariant('theme-light', '.theme-light &')
+    }
+  ],
 };

@@ -1,3 +1,7 @@
 node_modules
 .env
 package-lock.json
+client/dist
+*.zip
+stitch_design/
+stitch_extracted/

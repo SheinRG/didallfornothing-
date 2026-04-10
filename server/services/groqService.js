@@ -113,12 +113,12 @@ CANDIDATE RESUME CONTEXT:
 - Projects: ${(resumeContext.projects || []).join(', ')}
 - Summary: ${resumeContext.summary || 'N/A'}
 
-Generate 4 questions specifically tailored to this candidate's resume (referencing their actual projects, skills, and experience), plus 2 standard ${interviewType} questions for a ${level} level ${role} role. ${jobDescription ? 'Ensure the questions specifically test the requirements mentioned in the Job Description.' : ''}
+Generate 3 questions specifically tailored to this candidate's resume (referencing their actual projects, skills, and experience), 2 behavioral/situational questions (e.g., 'Tell me about a time...'), and 1 challenging ${interviewType} question for a ${level} level ${role} role. ${jobDescription ? 'Ensure questions specifically test requirements from the Job Description.' : ''}
 
-Return ONLY a JSON object with a "questions" array of 6 strings. The first 4 should reference specific items from the resume.`;
+Return ONLY a JSON object with a "questions" array of 6 strings. The very first question MUST be a friendly introduction acting like an interviewer meeting them for the first time, similar to: "How are you ${resumeContext.name || 'there'}? I was looking at your resume, specifically your experience with [pick a skill/project], and let's move forward with the interview." Then generate 2 questions tailored to the resume, 2 behavioral questions, and 1 role-specific question.`;
     } else {
       let jdContext = jobDescription ? `\n\nJOB DESCRIPTION (TARGET):\n${jobDescription}\n Ensure questions directly address these specific job requirements.` : '';
-      prompt = `You are an elite interview coach. Given a role, level, and interview type, generate 6 specific and challenging interview questions. Return ONLY a JSON object with a "questions" array of strings.\n\nGenerate 6 ${interviewType} questions for a ${level} level ${role} role.${jdContext}`;
+      prompt = `You are an elite interview coach. Given a role, level, and interview type, generate 6 specific and challenging interview questions. Return ONLY a JSON object with a "questions" array of strings.\n\nThe very first question MUST be a friendly introduction: "How are you doing today? I see you're interviewing for the ${level} ${role} role. Let's move forward with the interview." Then generate 3 ${interviewType} questions and 2 behavioral/situational questions.${jdContext}`;
     }
 
     const completion = await groq.chat.completions.create({

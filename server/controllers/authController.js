@@ -1,6 +1,9 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { OAuth2Client } from 'google-auth-library';
 import User from '../models/User.js';
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID || 'your_google_client_id_here');
 
 const COOKIE_OPTIONS = {
   httpOnly: true,
@@ -78,6 +81,53 @@ export const login = async (req, res) => {
   } catch (err) {
     console.error('Login error:', err);
     res.status(500).json({ message: 'Server error during login' });
+  }
+};
+
+/**
+ * POST /api/auth/google
+ * Verify Google ID token, find/create user, return JWT in cookie.
+ */
+export const googleLogin = async (req, res) => {
+  try {
+    const { token } = req.body; // This is the access_token from useGoogleLogin
+    if (!token) return res.status(400).json({ message: 'Google token is required' });
+
+    // Fetch user info from Google using the access token
+    const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    
+    if (!userInfoResponse.ok) {
+      throw new Error('Failed to fetch user info from Google');
+    }
+    
+    const payload = await userInfoResponse.json();
+    const { email, name, sub: googleId } = payload;
+
+    let user = await User.findOne({ email });
+    
+    if (!user) {
+      user = await User.create({ name, email, googleId });
+    } else if (!user.googleId) {
+      user.googleId = googleId;
+      await user.save();
+    }
+
+    const jwtToken = jwt.sign(
+      { userId: user._id, email: user.email },
+      process.env.JWT_SECRET || 'dev-secret',
+      { expiresIn: '7d' }
+    );
+
+    res.cookie('token', jwtToken, COOKIE_OPTIONS);
+    res.status(200).json({
+      message: 'Logged in with Google successfully',
+      user: { id: user._id, name: user.name, email: user.email, targetRoles: user.targetRoles || [] },
+    });
+  } catch (err) {
+    console.error('Google login error:', err);
+    res.status(500).json({ message: 'Server error during Google login', error: err.message });
   }
 };
 

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { Cover } from '../components/ui/cover';
 
 const API = 'http://localhost:5000/api';
 
@@ -198,7 +199,7 @@ export default function DashboardPage() {
         {/* Welcome Section */}
         <section className="mb-14 text-center md:text-left">
           <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight text-white mb-4">
-            Welcome back, <span className="text-[#e04f32]">{userName}</span>
+            Welcome back, <Cover className="text-[#e04f32]">{userName}</Cover>
           </h2>
           <p className="text-zinc-500 text-xs font-medium tracking-[0.3em] uppercase opacity-80">Your AI coaching terminal is synchronized and ready.</p>
         </section>

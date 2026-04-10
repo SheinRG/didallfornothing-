@@ -1,11 +1,15 @@
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, useAnimation } from 'framer-motion';
 import Navbar from '../components/layout/Navbar';
 import { BarChart, Activity, BrainCircuit, Mic } from 'lucide-react';
+import { Cover } from '../components/ui/cover';
+import { BackgroundLines } from '../components/ui/background-lines';
+import { CometCard } from '../components/ui/comet-card';
 
 import image3 from '../assets/image_3.jpg';
 
 export default function LandingPage() {
+  const controls = useAnimation();
   const toggleTheme = () => {
     const isLight = document.documentElement.classList.contains('theme-light');
     if (!isLight) {
@@ -29,11 +33,12 @@ export default function LandingPage() {
         <section className="relative max-w-[1400px] mx-auto px-6 pt-16 lg:pt-24 pb-32">
           {/* Background decoration moved here */}
           <div className="absolute inset-0 z-0 transition-opacity duration-1000">
+            <BackgroundLines className="opacity-60" />
             <div
               className="absolute inset-x-0 top-0 h-[600px]"
               style={{
                 background:
-                  'radial-gradient(ellipse 60% 50% at 25% 30%, rgba(232,86,59,0.06) 0%, transparent 70%)',
+                  'radial-gradient(ellipse 60% 50% at 75% 30%, rgba(232,86,59,0.08) 0%, transparent 70%)',
               }}
             />
           </div>
@@ -68,7 +73,7 @@ export default function LandingPage() {
               >
                 Ace your next<br />
                 interview<br />
-                with <span className="text-[#E8563B]">ORION</span>
+                with <Cover className="text-[#E8563B]">ORION</Cover>
               </motion.h1>
 
               <motion.p
@@ -92,7 +97,7 @@ export default function LandingPage() {
                   <motion.button
                     whileHover={{ scale: 1.04 }}
                     whileTap={{ scale: 0.96 }}
-                    className="px-8 py-5 bg-[#E8563B] text-white font-bold tracking-widest text-[15px] rounded-full transition-all shadow-xl shadow-[#E8563B]/20"
+                    className="px-8 py-[18px] bg-[#E8563B] text-white font-bold tracking-widest text-[15px] rounded-full transition-all shadow-xl shadow-[#E8563B]/20"
                   >
                     GET STARTED
                   </motion.button>
@@ -114,12 +119,12 @@ export default function LandingPage() {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.4, duration: 0.8 }}
-              className="hidden lg:block relative z-10 w-[540px] aspect-square ml-auto bg-white/[0.03] border border-white/10 theme-light:bg-zinc-100/60 theme-light:border-zinc-200/60 backdrop-blur-3xl rounded-[2rem] p-4 shadow-2xl overflow-hidden"
+              className="hidden lg:block relative z-10 w-[540px] aspect-square ml-auto bg-white/[0.03] border border-white/10 theme-light:bg-zinc-100/60 theme-light:border-zinc-200/60 backdrop-blur-3xl rounded-[2rem] p-4 shadow-2xl"
             >
               <div className="grid grid-cols-12 grid-rows-4 gap-3 h-full">
 
                 {/* ROW 1 */}
-                <motion.div whileHover={{ scale: 1.02 }} className="col-span-8 bg-surface-container-high border border-white/10 rounded-2xl p-6 shadow-lg flex flex-col justify-center theme-light:bg-white theme-light:border-black/5">
+                <motion.div animate={controls} drag whileDrag={{ scale: 1.05, zIndex: 50, cursor: 'grabbing' }} whileHover={{ scale: 1.02 }} className="col-span-8 bg-surface-container-high border border-white/10 rounded-2xl p-6 shadow-lg flex flex-col justify-center theme-light:bg-white theme-light:border-black/5">
                   <div className="flex gap-1.5 mb-4">
                     <div className="w-2.5 h-2.5 rounded-full bg-[#EF4444]" />
                     <div className="w-2.5 h-2.5 rounded-full bg-[#F59E0B]" />
@@ -133,7 +138,7 @@ export default function LandingPage() {
                   </pre>
                 </motion.div>
 
-                <motion.div whileHover={{ scale: 1.02 }} className="col-span-4 bg-surface-container-high border border-white/10 rounded-2xl p-5 shadow-lg flex flex-col items-center justify-center theme-light:bg-white theme-light:border-black/5">
+                <motion.div animate={controls} drag whileDrag={{ scale: 1.05, zIndex: 50, cursor: 'grabbing' }} whileHover={{ scale: 1.02 }} className="col-span-4 bg-surface-container-high border border-white/10 rounded-2xl p-5 shadow-lg flex flex-col items-center justify-center theme-light:bg-white theme-light:border-black/5">
                   <div className="relative w-14 h-14 flex items-center justify-center mb-2">
                     <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
                       <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" strokeWidth="12" className="text-white/5 theme-light:text-zinc-100" />
@@ -145,7 +150,7 @@ export default function LandingPage() {
                 </motion.div>
 
                 {/* ROW 2 */}
-                <motion.div whileHover={{ scale: 1.02 }} className="col-span-6 bg-surface-container-high border border-white/10 rounded-2xl p-6 shadow-lg flex flex-col justify-center theme-light:bg-white theme-light:border-black/5">
+                <motion.div animate={controls} drag whileDrag={{ scale: 1.05, zIndex: 50, cursor: 'grabbing' }} whileHover={{ scale: 1.02 }} className="col-span-6 bg-surface-container-high border border-white/10 rounded-2xl p-6 shadow-lg flex flex-col justify-center theme-light:bg-white theme-light:border-black/5">
                   <div className="flex items-center gap-2 mb-4">
                     <div className="w-1.5 h-5 bg-[#E8563B] rounded-full" />
                     <span className="text-[11px] tracking-[0.2em] font-bold text-[#888] theme-light:text-zinc-500 uppercase">Analysis</span>
@@ -168,13 +173,13 @@ export default function LandingPage() {
                   </div>
                 </motion.div>
 
-                <motion.div whileHover={{ scale: 1.02 }} className="col-span-6 bg-surface-container-high border border-white/10 rounded-2xl p-6 shadow-lg flex flex-col justify-center theme-light:bg-white theme-light:border-black/5">
+                <motion.div animate={controls} drag whileDrag={{ scale: 1.05, zIndex: 50, cursor: 'grabbing' }} whileHover={{ scale: 1.02 }} className="col-span-6 bg-surface-container-high border border-white/10 rounded-2xl p-6 shadow-lg flex flex-col justify-center theme-light:bg-white theme-light:border-black/5">
                   <div className="text-[10px] font-bold text-emerald-400 theme-light:text-emerald-700 uppercase tracking-[0.2em] mb-1">Target Path</div>
                   <div className="text-[15px] font-bold text-white theme-light:text-zinc-900">Senior Software Engineer</div>
                 </motion.div>
 
                 {/* ROW 3 */}
-                <motion.div whileHover={{ scale: 1.02 }} className="col-span-7 bg-surface-container-high border border-white/10 rounded-2xl p-5 flex items-center gap-4 shadow-lg theme-light:bg-white theme-light:border-black/5">
+                <motion.div animate={controls} drag whileDrag={{ scale: 1.05, zIndex: 50, cursor: 'grabbing' }} whileHover={{ scale: 1.02 }} className="col-span-7 bg-surface-container-high border border-white/10 rounded-2xl p-5 flex items-center gap-4 shadow-lg theme-light:bg-white theme-light:border-black/5">
                   <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 bg-[#333]">
                     <img src={image3} alt="User" className="w-full h-full object-cover" />
                   </div>
@@ -185,7 +190,7 @@ export default function LandingPage() {
                   <div className="ml-auto w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.4)] mr-2" />
                 </motion.div>
 
-                <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.95 }} onClick={toggleTheme} className="col-span-5 bg-surface-container-high border border-white/10 rounded-2xl p-4 flex items-center justify-center gap-4 shadow-lg cursor-pointer transition-colors hover:border-[#E8563B] theme-light:bg-white theme-light:border-black/5">
+                <motion.div animate={controls} drag whileDrag={{ scale: 1.05, zIndex: 50, cursor: 'grabbing' }} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.95 }} onClick={toggleTheme} className="col-span-5 bg-surface-container-high border border-white/10 rounded-2xl p-4 flex items-center justify-center gap-4 shadow-lg cursor-pointer transition-colors hover:border-[#E8563B] theme-light:bg-white theme-light:border-black/5">
                   <div className="w-11 h-11 rounded-full bg-[#E8563B] flex items-center justify-center text-white flex-shrink-0">
                     <span className="material-symbols-outlined text-[20px]">light_mode</span>
                   </div>
@@ -196,20 +201,26 @@ export default function LandingPage() {
                 </motion.div>
 
                 {/* ROW 4 */}
-                <motion.div whileHover={{ scale: 1.02 }} className="col-span-4 bg-surface-container-high border border-white/10 rounded-2xl p-5 shadow-lg flex flex-col items-center justify-center gap-2 theme-light:bg-white theme-light:border-black/5">
+                {/* PUSH / ASSEMBLE BUTTON */}
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => controls.start({ x: 0, y: 0, transition: { type: "spring", stiffness: 200, damping: 20 } })}
+                  className="col-span-4 bg-surface-container-high border border-white/10 rounded-2xl p-5 shadow-[0_0_20px_rgba(232,86,59,0.2)] flex flex-col items-center justify-center gap-2 cursor-pointer transition-colors hover:border-[#E8563B] theme-light:bg-white theme-light:border-black/5 z-50 relative"
+                >
                   <BrainCircuit className="text-[#E8563B]" size={22} />
                   <div className="text-center">
-                    <div className="text-[9px] tracking-[0.2em] font-bold text-[#888] theme-light:text-zinc-500 uppercase mb-0.5">Intent</div>
-                    <div className="text-[12px] font-bold text-white theme-light:text-zinc-900">Relevant</div>
+                    <div className="text-[10px] tracking-[0.2em] font-bold text-[#E8563B] uppercase mb-0.5">Push</div>
+                    <div className="text-[12px] font-bold text-white theme-light:text-zinc-900">Assemble</div>
                   </div>
                 </motion.div>
 
-                <motion.div whileHover={{ scale: 1.02 }} className="col-span-5 bg-surface-container-high border border-white/10 rounded-2xl p-4 flex flex-col items-center justify-center gap-2 shadow-lg theme-light:bg-white theme-light:border-black/5">
+                <motion.div animate={controls} drag whileDrag={{ scale: 1.05, zIndex: 50, cursor: 'grabbing' }} whileHover={{ scale: 1.02 }} className="col-span-5 bg-surface-container-high border border-white/10 rounded-2xl p-4 flex flex-col items-center justify-center gap-2 shadow-lg theme-light:bg-white theme-light:border-black/5">
                   <div className="w-3 h-3 rounded-full bg-red-500 animate-pulse shadow-[0_0_10px_rgba(239,68,68,0.5)] mb-1" />
                   <span className="text-[11px] font-bold tracking-[0.15em] text-white theme-light:text-zinc-900 uppercase">Input Active</span>
                 </motion.div>
 
-                <motion.div whileHover={{ scale: 1.02 }} className="col-span-3 bg-surface-container-high border border-white/10 rounded-2xl p-4 flex flex-col items-center justify-center shadow-lg theme-light:bg-white theme-light:border-black/5">
+                <motion.div animate={controls} drag whileDrag={{ scale: 1.05, zIndex: 50, cursor: 'grabbing' }} whileHover={{ scale: 1.02 }} className="col-span-3 bg-surface-container-high border border-white/10 rounded-2xl p-4 flex flex-col items-center justify-center shadow-lg theme-light:bg-white theme-light:border-black/5">
                   <div className="text-[8px] font-bold text-[#888] theme-light:text-zinc-500 tracking-[0.25em] uppercase mb-2">Voice</div>
                   <div className="flex gap-[3px] items-center h-4">
                     {[1, 0.6, 1.4, 0.8, 1.2, 0.5, 0.9].map((s, i) => (
@@ -241,10 +252,75 @@ export default function LandingPage() {
           </div>
         </section>
 
+        <section className="max-w-[1400px] mx-auto px-6 py-32">
+          <div className="text-center mb-20">
+            <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight mb-6 text-white theme-light:text-zinc-900">
+              PLATFORM FEATURES
+            </h2>
+            <p className="text-lg text-[#888] theme-light:text-zinc-500 max-w-2xl mx-auto">
+              Everything you need to transform your interview performance from average to executive.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {[
+              {
+                title: 'Real-time Simulation',
+                desc: 'Practice with realistic AI avatars tailored to your role.',
+                id: '#001',
+                img: '/ai_interview_simulation_1775775328826.png'
+              },
+              {
+                title: 'Granular Feedback',
+                desc: 'Get instant structural analysis for every response.',
+                id: '#002',
+                img: '/real_time_analytics_1775775351679.png'
+              },
+              {
+                title: 'Performance History',
+                desc: 'Review your growth with historical session archives.',
+                id: '#003',
+                img: '/personalized_coaching_1775775366314.png'
+              },
+              {
+                title: 'Behavioral Prep',
+                desc: 'Master the STAR method with AI-guided frameworks.',
+                id: '#004',
+                img: '/star_method_prep_1775775381917.png'
+              }
+            ].map((f, i) => (
+              <CometCard key={i}>
+                <div className="flex w-full flex-col items-stretch rounded-[24px] border border-white/10 theme-light:border-zinc-300 bg-[#0a0a0a] theme-light:bg-zinc-100 p-3 shadow-lg transition-all hover:border-[#E8563B]/50">
+                  <div className="px-1 flex-1">
+                    <div className="relative mt-1 aspect-[4/5] w-full group overflow-hidden rounded-[18px]">
+                      <img
+                        loading="lazy"
+                        className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        alt={f.title}
+                        src={f.img}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 theme-light:from-zinc-100/40 via-transparent to-transparent opacity-30" />
+                    </div>
+                  </div>
+                  <div className="mt-4 p-3 pr-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="text-sm font-black text-white theme-light:text-zinc-800 uppercase tracking-wider">{f.title}</h3>
+                      <span className="text-[10px] font-mono text-[#E8563B] font-bold">{f.id}</span>
+                    </div>
+                    <p className="text-[11px] text-[#888] theme-light:text-zinc-600 leading-relaxed font-medium">
+                      {f.desc}
+                    </p>
+                  </div>
+                </div>
+              </CometCard>
+            ))}
+          </div>
+        </section>
+
         {/* ═══════════════════════════════════════════════════
             CAPABILITIES — rounded, hover-interactive cards
         ═══════════════════════════════════════════════════ */}
-        <section className="max-w-[1400px] mx-auto px-6 py-32 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <section className="max-w-[1400px] mx-auto px-6 py-32 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 border-t border-white/5">
           {/* Interview Simulation */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -252,7 +328,7 @@ export default function LandingPage() {
             viewport={{ once: true, margin: '-80px' }}
             whileHover={{ y: -8, scale: 1.01 }}
             transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-            className="lg:col-span-2 border border-[#222] theme-light:border-zinc-200 bg-[#111]/80 theme-light:bg-white backdrop-blur-sm p-10 rounded-3xl relative overflow-hidden group cursor-default shadow-2xl"
+            className="lg:col-span-2 border border-[#222] theme-light:border-zinc-300 bg-[#111]/80 theme-light:bg-zinc-100 backdrop-blur-sm p-10 rounded-3xl relative overflow-hidden group cursor-default shadow-lg"
           >
             <div className="absolute top-0 right-0 p-10 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity duration-500 text-white theme-light:text-black">
               <BrainCircuit size={180} />
@@ -285,7 +361,7 @@ export default function LandingPage() {
             viewport={{ once: true, margin: '-80px' }}
             whileHover={{ y: -8, scale: 1.02 }}
             transition={{ type: 'spring', stiffness: 200, damping: 20, delay: 0.1 }}
-            className="border border-[#222] theme-light:border-zinc-200 bg-[#111]/80 theme-light:bg-white backdrop-blur-sm p-10 rounded-3xl relative cursor-default shadow-2xl"
+            className="border border-[#222] theme-light:border-zinc-300 bg-[#111]/80 theme-light:bg-zinc-100 backdrop-blur-sm p-10 rounded-3xl relative cursor-default shadow-lg"
           >
             <div className="flex items-center gap-3 mb-6">
               <BarChart className="text-[#ff5543]" size={22} />
@@ -310,40 +386,6 @@ export default function LandingPage() {
           </motion.div>
         </section>
 
-        <section className="max-w-[1400px] mx-auto px-6 py-32 border-t border-white/5">
-          <div className="text-center mb-20">
-            <h2 className="text-4xl sm:text-5xl font-extrabold tracking-tight mb-6 text-white theme-light:text-zinc-900">
-              PLATFORM FEATURES
-            </h2>
-            <p className="text-lg text-[#888] theme-light:text-zinc-500 max-w-2xl mx-auto">
-              Everything you need to transform your interview performance from average to executive.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              { title: 'Tailored Scenarios', desc: 'AI generates questions based on your specific target job description.', icon: 'target' },
-              { title: 'Deep AI Analysis', desc: 'Get granular scores on clarity, relevance, and structural integrity.', icon: 'analytics' },
-              { title: 'Historical Archives', desc: 'Securely store and review every past session to track growth.', icon: 'folder_open' },
-              { title: 'Real-time Hints', desc: 'Get subtle AI nudges when you need help structuring an answer.', icon: 'lightbulb' }
-            ].map((f, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className="bg-surface-container-high border border-white/10 theme-light:bg-white theme-light:border-black/5 rounded-3xl p-8 shadow-xl hover:translate-y-[-4px] transition-all cursor-default"
-              >
-                <span className="material-symbols-outlined text-[#ff5543] mb-6 text-3xl">
-                  {f.icon}
-                </span>
-                <h3 className="text-lg font-bold text-white theme-light:text-zinc-900 mb-3">{f.title}</h3>
-                <p className="text-sm text-[#888] theme-light:text-zinc-500 leading-relaxed">{f.desc}</p>
-              </motion.div>
-            ))}
-          </div>
-        </section>
 
         {/* FINAL SIGN UP CTA */}
         <section className="max-w-4xl mx-auto px-6 py-32 text-center">

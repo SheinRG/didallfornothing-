@@ -14,6 +14,7 @@ export default function InterviewPage() {
   const transcriptEndRef = useRef(null);
 
   const {
+    questions,
     currentQuestion,
     currentIndex,
     totalQuestions,
@@ -33,6 +34,13 @@ export default function InterviewPage() {
   const [hint, setHint] = useState('');
   const [hintLoading, setHintLoading] = useState(false);
 
+  const [viewIndex, setViewIndex] = useState(0);
+  const [secondsLeft, setSecondsLeft] = useState(null);
+  
+  const isSpeakingRef = useRef(isSpeaking);
+  const silenceTimerRef = useRef(null);
+  const countdownTimerRef = useRef(null);
+
   // Redirect if no session ID exists
   useEffect(() => {
     if (!sessionId) {
@@ -40,43 +48,83 @@ export default function InterviewPage() {
     }
   }, [sessionId, navigate]);
 
+  // Keep viewIndex synced with currentIndex
+  useEffect(() => {
+    setViewIndex(currentIndex);
+  }, [currentIndex]);
+
   // Auto-speak the question whenever a new one appears
   useEffect(() => {
-    if (currentQuestion) {
-      speak(currentQuestion);
+    if (questions[currentIndex]) {
+      speak(questions[currentIndex]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentQuestion]);
+  }, [currentIndex, questions]);
 
   // Scroll transcript panel to bottom whenever conversation updates
   useEffect(() => {
     transcriptEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [conversationHistory, transcript]);
 
-  const handleMicClick = () => {
-    if (isSpeaking) stopSpeaking(); // Stop AI voice if it's still talking
-    if (isListening) {
-      stop();
-    } else {
-      start();
+  // Auto-start Mic when AI finishes speaking the active question
+  useEffect(() => {
+    if (isSpeakingRef.current && !isSpeaking && !sessionLoading) {
+      if (viewIndex === currentIndex) {
+        setTimeout(() => {
+          if (!isListening) start();
+        }, 500);
+      }
     }
+    isSpeakingRef.current = isSpeaking;
+  }, [isSpeaking, isListening, start, sessionLoading, viewIndex, currentIndex]);
+
+  // Handle auto-advance silence detection
+  useEffect(() => {
+    if (isListening && viewIndex === currentIndex) {
+      clearTimeout(silenceTimerRef.current);
+      clearInterval(countdownTimerRef.current);
+      setSecondsLeft(null);
+
+      // 4 seconds of silence triggers the 3-second warning
+      silenceTimerRef.current = setTimeout(() => {
+        if (transcript.trim().length > 15) {
+          setSecondsLeft(3);
+        }
+      }, 4000);
+    } else {
+      clearTimeout(silenceTimerRef.current);
+      clearInterval(countdownTimerRef.current);
+      setSecondsLeft(null);
+    }
+
+    return () => {
+      clearTimeout(silenceTimerRef.current);
+      clearInterval(countdownTimerRef.current);
+    };
+  }, [transcript, isListening, viewIndex, currentIndex]);
+
+  const handleMicClick = () => {
+    if (viewIndex !== currentIndex) return; // Ignore if looking at past questions
+    if (isSpeaking) stopSpeaking(); // Stop AI voice if it's still talking
+    if (isListening) stop();
+    else start();
   };
 
   const handleReplay = () => {
-    if (currentQuestion) {
-      speak(currentQuestion);
+    if (questions[viewIndex]) {
+      speak(questions[viewIndex]);
     }
   };
 
   const handleHint = async () => {
-    if (!currentQuestion) return;
+    if (!questions[viewIndex]) return;
     setHintLoading(true);
     try {
       const response = await fetch(`http://localhost:5000/api/sessions/${sessionId}/hint`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ question: currentQuestion }),
+        body: JSON.stringify({ question: questions[viewIndex] }),
       });
       const data = await response.json();
       if (response.ok) {
@@ -92,6 +140,10 @@ export default function InterviewPage() {
   const handleNext = async () => {
     stop(); // Ensure mic is off
     stopSpeaking(); // Stop TTS if playing
+    clearTimeout(silenceTimerRef.current);
+    clearInterval(countdownTimerRef.current);
+    setSecondsLeft(null);
+
     const isLast = currentIndex + 1 >= totalQuestions;
 
     if (isLast) {
@@ -116,7 +168,6 @@ export default function InterviewPage() {
       setHint(''); // Clear hint for next question
 
       // Optional logic to dynamically insert a follow-up question
-      // Do it 50% of the time, and stop if we exceed 8 questions total so it doesn't drag on.
       if (transcript && transcript.length > 20 && totalQuestions < 8 && Math.random() > 0.5) {
         setSubmitting(true);
         try {
@@ -124,7 +175,7 @@ export default function InterviewPage() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
-            body: JSON.stringify({ question: currentQuestion, answer: transcript }),
+            body: JSON.stringify({ question: questions[currentIndex], answer: transcript }),
           });
           const data = await response.json();
           if (response.ok && data.followup) {
@@ -141,6 +192,19 @@ export default function InterviewPage() {
       }
     }
   };
+
+  // Handle countdown timer progression for auto-advance
+  useEffect(() => {
+    if (secondsLeft !== null && secondsLeft > 0) {
+      countdownTimerRef.current = setInterval(() => {
+        setSecondsLeft(prev => prev - 1);
+      }, 1000);
+    } else if (secondsLeft === 0) {
+      setSecondsLeft(null);
+      handleNext();
+    }
+    return () => clearInterval(countdownTimerRef.current);
+  }, [secondsLeft, handleNext]);
 
   if (sessionLoading) {
     return (
@@ -194,36 +258,45 @@ export default function InterviewPage() {
         {/* ── Left: Live Stage ──────────────────────── */}
         <div className="flex-1 flex flex-col items-center justify-center gap-8 relative z-10 min-h-[40vh] lg:min-h-0">
           <motion.div
-            key={currentIndex}
+            key={viewIndex}
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-center"
+            className="text-center w-full px-6"
           >
+            {viewIndex < currentIndex && (
+              <div className="mb-4 inline-flex items-center gap-2 px-3 py-1 bg-[#E8563B]/20 border border-[#E8563B]/50 rounded-full">
+                <span className="text-[10px] font-bold tracking-[0.2em] text-[#E8563B] uppercase">Reviewing Previous Question</span>
+              </div>
+            )}
+
             <p className="text-2xl sm:text-3xl font-extrabold text-white leading-tight tracking-tight px-4">
-              "{currentQuestion}"
+              "{questions[viewIndex] || currentQuestion}"
             </p>
 
-            {/* Replay button */}
-            <button
-              onClick={handleReplay}
-              disabled={isSpeaking}
-              className="mt-4 inline-flex items-center gap-1.5 text-[11px] font-bold tracking-[0.15em] text-[#888] hover:text-[#E8563B] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" />
-              </svg>
-              REPLAY QUESTION
-            </button>
-            <button
-              onClick={handleHint}
-              disabled={hintLoading || !!hint}
-              className="mt-4 ml-4 inline-flex items-center gap-1.5 text-[11px] font-bold tracking-[0.15em] text-[#888] hover:text-[#E8563B] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.829 1.508-2.311a5.112 5.112 0 002.13-2.186 5.333 5.333 0 00-3.321-7.234 5.352 5.352 0 00-4.004.148 5.333 5.333 0 00-3.321 7.234c.732 1.488 2.13 2.186 2.13 2.186v.192c0 1.25.962 2.348 2.213 2.45h2.124A2.49 2.49 0 0014.25 18z" />
-              </svg>
-              {hintLoading ? 'THINKING...' : 'NEED A HINT?'}
-            </button>
+            {viewIndex === currentIndex && (
+              <div className="flex items-center justify-center gap-3 mt-5">
+                <button
+                  onClick={handleReplay}
+                  disabled={isSpeaking}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold tracking-[0.15em] bg-[#1a1a1a] text-[#888] border border-[#333] hover:text-[#E8563B] hover:border-[#E8563B]/50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.756 3.63 8.25 4.51 8.25H6.75z" />
+                  </svg>
+                  REPLAY
+                </button>
+                <button
+                  onClick={handleHint}
+                  disabled={hintLoading || !!hint}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold tracking-[0.15em] bg-[#1a1a1a] text-[#888] border border-[#333] hover:text-[#E8563B] hover:border-[#E8563B]/50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.829 1.508-2.311a5.112 5.112 0 002.13-2.186 5.333 5.333 0 00-3.321-7.234 5.352 5.352 0 00-4.004.148 5.333 5.333 0 00-3.321 7.234c.732 1.488 2.13 2.186 2.13 2.186v.192c0 1.25.962 2.348 2.213 2.45h2.124A2.49 2.49 0 0014.25 18z" />
+                  </svg>
+                  {hintLoading ? 'THINKING...' : 'HINT'}
+                </button>
+              </div>
+            )}
           </motion.div>
 
           {/* Hint Display */}
@@ -231,42 +304,60 @@ export default function InterviewPage() {
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mt-6 max-w-md bg-[#E8563B]/10 border border-[#E8563B]/30 rounded-xl p-4"
+              className="mt-2 max-w-md bg-[#E8563B]/10 border border-[#E8563B]/30 rounded-xl p-4"
             >
               <div className="text-[10px] font-bold tracking-[0.2em] text-[#E8563B] mb-2">COACH'S HINT</div>
               <p className="text-sm font-medium text-white/90 leading-relaxed whitespace-pre-wrap">{hint}</p>
             </motion.div>
           )}
 
-          {/* Microphone button */}
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={handleMicClick}
-            className={`w-24 h-24 rounded-full flex flex-col items-center justify-center gap-1 transition-all shadow-2xl ${
-              isListening
-                ? 'bg-[#E8563B] text-white shadow-[0_0_40px_rgba(232,86,59,0.5)] scale-110'
-                : 'bg-[#1a1a1a] border border-[#333] text-[#888] hover:border-[#E8563B] hover:text-[#E8563B]'
-            }`}
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="w-8 h-8"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={1.5}
+          {/* Microphone button & Countdown wrapper */}
+          <div className="flex flex-col items-center gap-6 mt-4">
+            <AnimatePresence>
+              {secondsLeft !== null && viewIndex === currentIndex && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  className="bg-[#E8563B] text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] shadow-lg shadow-[#E8563B]/20"
+                >
+                  Auto-advancing in {secondsLeft}s...
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleMicClick}
+              disabled={viewIndex !== currentIndex}
+              className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full flex flex-col items-center justify-center gap-1 transition-all shadow-2xl ${
+                viewIndex !== currentIndex
+                  ? 'opacity-20 grayscale pointer-events-none'
+                  : isListening
+                  ? 'bg-[#E8563B] text-white shadow-[0_0_40px_rgba(232,86,59,0.5)] scale-110'
+                  : 'bg-[#1a1a1a] border border-[#333] text-[#888] hover:border-[#E8563B] hover:text-[#E8563B]'
+              }`}
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z"
-              />
-            </svg>
-          </motion.button>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-8 h-8"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={1.5}
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z"
+                />
+              </svg>
+            </motion.button>
+          </div>
 
           {/* Live transcript of current speech */}
-          {isListening && transcript && (
+          {isListening && transcript && viewIndex === currentIndex && (
             <motion.div
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
@@ -280,9 +371,43 @@ export default function InterviewPage() {
             </motion.div>
           )}
 
-          <Button variant="primary" onClick={handleNext} disabled={submitting}>
-            {submitting ? 'GENERATING ANALYSIS...' : currentIndex + 1 < totalQuestions ? 'NEXT QUESTION' : 'SUBMIT SIMULATION'}
-          </Button>
+          {/* Navigation Controls */}
+          <div className="flex items-center gap-3 mt-4">
+            <button
+              onClick={() => setViewIndex(Math.max(0, viewIndex - 1))}
+              disabled={viewIndex === 0}
+              className="w-12 h-12 rounded-xl bg-[#1a1a1a] border border-[#333] flex items-center justify-center text-zinc-500 hover:text-white hover:border-[#E8563B] transition-all disabled:opacity-20"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
+            </button>
+
+            {viewIndex === currentIndex ? (
+              <Button 
+                variant="primary" 
+                onClick={handleNext} 
+                disabled={submitting}
+                className="min-w-[200px]"
+              >
+                {submitting ? 'PROCESSING...' : currentIndex + 1 < totalQuestions ? 'SKIP TO NEXT' : 'SUBMIT SIMULATION'}
+              </Button>
+            ) : (
+              <Button 
+                variant="primary" 
+                onClick={() => setViewIndex(currentIndex)}
+                className="min-w-[200px]"
+              >
+                BACK TO CURRENT
+              </Button>
+            )}
+
+            <button
+              onClick={() => setViewIndex(Math.min(currentIndex, viewIndex + 1))}
+              disabled={viewIndex === currentIndex}
+              className="w-12 h-12 rounded-xl bg-[#1a1a1a] border border-[#333] flex items-center justify-center text-zinc-500 hover:text-white hover:border-[#E8563B] transition-all disabled:opacity-20"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+            </button>
+          </div>
         </div>
 
         {/* ── Right: Conversation Transcript ─────────── */}

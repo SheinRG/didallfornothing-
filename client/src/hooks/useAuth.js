@@ -59,6 +59,28 @@ export default function useAuth() {
     }
   }, []);
 
+  const loginWithGoogle = useCallback(async (token) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/google`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ token }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Google Login failed');
+      setUser(data.user);
+      return data.user;
+    } catch (err) {
+      setError(err.message);
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   const logout = useCallback(async () => {
     try {
       await fetch(`${API_BASE_URL}/auth/logout`, {
@@ -71,7 +93,7 @@ export default function useAuth() {
     }
   }, []);
 
-  return { user, loading, error, login, register, logout };
+  return { user, loading, error, login, register, loginWithGoogle, logout };
 }
 
 // Ready for: wiring to real /api/auth endpoints
