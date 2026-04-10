@@ -38,7 +38,8 @@ mongoose
 app.use(helmet());
 app.use(cors({
   origin: function (origin, callback) {
-    if (!origin || origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1')) {
+    const allowed = [process.env.CLIENT_URL];
+    if (!origin || origin.startsWith('http://localhost') || origin.startsWith('http://127.0.0.1') || allowed.includes(origin)) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
@@ -50,6 +51,11 @@ app.use(cors({
 // ── Parsers ─────────────────────────────────────────────
 app.use(express.json());
 app.use(cookieParser());
+
+// ── Health Check ────────────────────────────────────────
+app.get('/', (req, res) => {
+  res.json({ message: 'Orion AI Backend is Active 🚀', status: 'Healthy' });
+});
 
 // ── Routes ──────────────────────────────────────────────
 app.use('/api/auth', authRoutes);
