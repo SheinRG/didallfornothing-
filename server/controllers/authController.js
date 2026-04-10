@@ -7,8 +7,8 @@ const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID || 'your_goog
 
 const COOKIE_OPTIONS = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: 'strict',
+  secure: true, // Required for sameSite: 'none'
+  sameSite: 'none', // Required for cross-site cookies
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
 };
 
