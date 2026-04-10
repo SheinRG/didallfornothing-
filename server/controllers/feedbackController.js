@@ -24,9 +24,8 @@ export const createFeedback = async (req, res) => {
     // Combine all questions and answers into a transcript
     let transcript = '';
     for (let i = 0; i < session.questions.length; i++) {
-      if (answers[i]) {
-        transcript += `Q: ${session.questions[i]}\nA: ${answers[i]}\n\n`;
-      }
+      const ans = answers[i] && answers[i].trim().length > 0 ? answers[i] : '[NO ANSWER PROVIDED BY CANDIDATE / SKIPPED]';
+      transcript += `Q: ${session.questions[i]}\nA: ${ans}\n\n`;
     }
 
     const analysis = await analyseAnswer(transcript);
@@ -41,6 +40,7 @@ export const createFeedback = async (req, res) => {
         confidence: analysis.confidence,
       },
       fillerWordCount: analysis.fillerWordCount,
+      fillerWordsList: analysis.fillerWordsList,
       overallScore: analysis.overallScore,
       feedback: analysis.feedback,
       starFeedback: analysis.starFeedback, // new field

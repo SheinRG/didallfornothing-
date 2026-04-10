@@ -36,7 +36,6 @@ function RadialGauge({ score = 0, max = 10 }) {
           initial={{ strokeDashoffset: C }}
           animate={{ strokeDashoffset: offset }}
           transition={{ duration: 1.2, ease: 'easeOut', delay: 0.3 }}
-          className="drop-shadow-[0_0_12px_rgba(255,85,67,0.5)]"
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
@@ -93,6 +92,7 @@ export default function FeedbackPage() {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
   const [modelOpen, setModelOpen] = useState(false);
+  const [showFillerWords, setShowFillerWords] = useState(false);
   const [isThemeLight, setIsThemeLight] = useState(false);
 
   // Sync theme from localStorage
@@ -140,6 +140,30 @@ export default function FeedbackPage() {
     fetchAll();
   }, [sessionId]);
 
+  const handleDownloadTranscript = () => {
+    if (!session || !session.questions || !session.answers) return;
+    
+    let content = `INTERVIEW TRANSCRIPT\n--------------------------\n`;
+    content += `Role: ${session.role.toUpperCase()}\n`;
+    content += `Difficulty: ${session.difficulty ? session.difficulty.toUpperCase() : 'N/A'}\n`;
+    content += `Date: ${new Date(session.createdAt).toLocaleDateString()}\n\n`;
+    
+    session.questions.forEach((q, i) => {
+      content += `[COACH]: ${q}\n`;
+      content += `[YOU]: ${session.answers[i] || '(No response recorded)'}\n\n`;
+    });
+    
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Transcript_${sessionId.slice(-4)}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   /* ── Loading ───────────────────────────────── */
   if (loading) {
     return (
@@ -170,7 +194,7 @@ export default function FeedbackPage() {
     );
   }
 
-  const { scores, overallScore, fillerWordCount, feedback, starFeedback, modelAnswer } = feedbackData;
+  const { scores, overallScore, fillerWordCount, fillerWordsList, feedback, starFeedback, modelAnswer } = feedbackData;
 
   /* derive title from session data */
   const roleLabels = { swe: 'SWE', pm: 'PM', design: 'Design', marketing: 'Marketing' };
@@ -199,7 +223,7 @@ export default function FeedbackPage() {
             <button onClick={toggleTheme} className="material-symbols-outlined text-neutral-400 hover:text-white transition-colors">
               {isThemeLight ? 'light_mode' : 'dark_mode'}
             </button>
-            <button className="material-symbols-outlined text-neutral-400 hover:text-white transition-colors">notifications</button>
+
             <Link
               to="/dashboard"
               className="w-10 h-10 rounded-full border border-white/10 overflow-hidden flex items-center justify-center bg-primary-container/20"
@@ -241,10 +265,16 @@ export default function FeedbackPage() {
             className="flex gap-4"
           >
             <button
+              onClick={handleDownloadTranscript}
+              className="px-6 py-3 bg-surface-container-high rounded-xl font-semibold text-sm hover:bg-surface-container-highest transition-all active:scale-95 flex items-center gap-2 border border-white/5 text-[#E8563B]"
+            >
+              <span className="material-symbols-outlined text-sm">download</span> TRANSCRIPT
+            </button>
+            <button
               onClick={() => window.print()}
               className="px-6 py-3 bg-surface-container-high rounded-xl font-semibold text-sm hover:bg-surface-container-highest transition-all active:scale-95 flex items-center gap-2 border border-white/5"
             >
-              <span className="material-symbols-outlined text-sm">share</span> EXPORT PDF
+              <span className="material-symbols-outlined text-sm">picture_as_pdf</span> PDF
             </button>
             <Link
               to="/onboarding"
@@ -259,16 +289,17 @@ export default function FeedbackPage() {
         <div className="relative z-10 grid grid-cols-12 gap-8">
 
           {/* Hero: Overall Score */}
-          <div className="col-span-12 lg:col-span-8">
+          <div className="col-span-12 lg:col-span-8 relative z-20">
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
-              className="bg-surface-container-low p-10 md:p-12 h-full border border-white/5 relative overflow-hidden rounded-[2.5rem] card-pop
-                         theme-light-card"
+              className="bg-surface-container-low p-10 md:p-12 h-full border border-white/5 relative rounded-[2.5rem] card-pop theme-light-card"
             >
-              {/* Subtle Glow */}
-              <div className="absolute -top-24 -left-24 w-96 h-96 bg-primary-container/10 blur-[120px] pointer-events-none" />
+              {/* Subtle Glow container */}
+              <div className="absolute inset-0 overflow-hidden rounded-[2.5rem] pointer-events-none">
+                <div className="absolute -top-24 -left-24 w-96 h-96 bg-primary-container/10 blur-[120px]" />
+              </div>
 
               <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-12">
                 <div className="flex-1">
@@ -281,11 +312,43 @@ export default function FeedbackPage() {
 
                   {/* Filler Words Badge */}
                   {fillerWordCount > 0 && (
-                    <div className="inline-flex items-center gap-4 px-6 py-4 bg-primary-container/10 border border-primary-container/20 rounded-full shadow-[0_0_30px_rgba(255,85,67,0.1)]">
-                      <span className="material-symbols-outlined text-primary-container" style={{ fontVariationSettings: '"FILL" 1' }}>warning</span>
-                      <span className="text-primary-container font-semibold text-sm tracking-wide">
-                        {fillerWordCount} FILLER WORDS DETECTED
-                      </span>
+                    <div className="relative inline-block">
+                      <button 
+                        onClick={() => setShowFillerWords(!showFillerWords)}
+                        className="inline-flex items-center gap-4 px-6 py-4 bg-primary-container/10 border border-primary-container/20 rounded-full shadow-[0_0_30px_rgba(255,85,67,0.1)] hover:bg-primary-container/20 transition-all cursor-pointer"
+                      >
+                        <span className="material-symbols-outlined text-primary-container" style={{ fontVariationSettings: '"FILL" 1' }}>warning</span>
+                        <span className="text-primary-container font-semibold text-sm tracking-wide">
+                          {fillerWordCount} FILLER WORDS
+                        </span>
+                        <span className="material-symbols-outlined text-primary-container text-sm">
+                          {showFillerWords ? 'expand_less' : 'expand_more'}
+                        </span>
+                      </button>
+                      
+                      <AnimatePresence>
+                        {showFillerWords && (
+                          <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="absolute top-full mt-3 left-0 w-[240px] bg-[#1a1a1a] border border-[#333] rounded-2xl p-4 shadow-2xl z-50"
+                          >
+                            <p className="text-xs font-bold tracking-[0.1em] text-[#888] mb-3 uppercase">Words Detected:</p>
+                            {fillerWordsList && fillerWordsList.length > 0 ? (
+                              <div className="flex flex-wrap gap-2">
+                                {fillerWordsList.map((word, idx) => (
+                                  <span key={idx} className="px-2.5 py-1 bg-[#222] border border-[#444] text-[#E8563B] rounded-lg text-sm font-medium">
+                                    "{word}"
+                                  </span>
+                                ))}
+                              </div>
+                            ) : (
+                              <p className="text-sm text-neutral-400">Filler words were detected in your audio, but the specifics were not logged in this session.</p>
+                            )}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
                   )}
                 </div>

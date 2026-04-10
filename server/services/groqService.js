@@ -81,7 +81,7 @@ export async function extractTextFromImage(base64Image, mimeType) {
  * generateQuestions(role, level, interviewType, resumeContext)
  * If resumeContext is provided, generates personalized questions.
  */
-export async function generateQuestions(role, level, interviewType, resumeContext = null, jobDescription = '') {
+export async function generateQuestions(role, level, interviewType, resumeContext = null, jobDescription = '', difficulty = 'medium') {
   if (!process.env.GROQ_API_KEY) {
     console.warn('⚠️ GROQ_API_KEY missing - using fallback mock questions');
     return {
@@ -113,12 +113,12 @@ CANDIDATE RESUME CONTEXT:
 - Projects: ${(resumeContext.projects || []).join(', ')}
 - Summary: ${resumeContext.summary || 'N/A'}
 
-Generate 3 questions specifically tailored to this candidate's resume (referencing their actual projects, skills, and experience), 2 behavioral/situational questions (e.g., 'Tell me about a time...'), and 1 challenging ${interviewType} question for a ${level} level ${role} role. ${jobDescription ? 'Ensure questions specifically test requirements from the Job Description.' : ''}
+Generate 3 questions specifically tailored to this candidate's resume (referencing their actual projects, skills, and experience), 2 behavioral/situational questions (e.g., 'Tell me about a time...'), and 1 challenging ${interviewType} question for a ${level} level ${role} role. The difficulty of these questions should be exactly ${difficulty.toUpperCase()}, reflecting the expectations of that difficulty level. ${jobDescription ? 'Ensure questions specifically test requirements from the Job Description.' : ''}
 
 Return ONLY a JSON object with a "questions" array of 6 strings. The very first question MUST be a friendly introduction acting like an interviewer meeting them for the first time, similar to: "How are you ${resumeContext.name || 'there'}? I was looking at your resume, specifically your experience with [pick a skill/project], and let's move forward with the interview." Then generate 2 questions tailored to the resume, 2 behavioral questions, and 1 role-specific question.`;
     } else {
       let jdContext = jobDescription ? `\n\nJOB DESCRIPTION (TARGET):\n${jobDescription}\n Ensure questions directly address these specific job requirements.` : '';
-      prompt = `You are an elite interview coach. Given a role, level, and interview type, generate 6 specific and challenging interview questions. Return ONLY a JSON object with a "questions" array of strings.\n\nThe very first question MUST be a friendly introduction: "How are you doing today? I see you're interviewing for the ${level} ${role} role. Let's move forward with the interview." Then generate 3 ${interviewType} questions and 2 behavioral/situational questions.${jdContext}`;
+      prompt = `You are an elite interview coach. Given a role, level, and interview type, generate 6 specific and challenging interview questions. The difficulty of these questions should be exactly ${difficulty.toUpperCase()}. Return ONLY a JSON object with a "questions" array of strings.\n\nThe very first question MUST be a friendly introduction: "How are you doing today? I see you're interviewing for the ${level} ${role} role. Let's move forward with the interview." Then generate 3 ${interviewType} questions and 2 behavioral/situational questions.${jdContext}`;
     }
 
     const completion = await groq.chat.completions.create({
@@ -200,7 +200,9 @@ export async function analyseAnswer(transcript) {
   try {
     const prompt = `You are a world-class executive interview coach and communication analyst. You have been given a complete interview transcript to evaluate.
 
-Your analysis must be THOROUGH, SPECIFIC, and ACTIONABLE. Do NOT give vague feedback — reference EXACT phrases, patterns, or moments from the transcript.
+Your analysis must be THOROUGH, SPECIFIC, ACTIONABLE, and BRUTALLY HONEST. Do NOT give vague feedback and do NOT give high scores unless the candidate's answers are exceptionally elite. 
+
+CRITICAL GRADING RULE: If the candidate skipped questions, provided ultra-short answers, or said "I don't know", you MUST heavily penalize the scores. An average acceptable interview is a 5/10. A 10/10 requires absolute perfection. Never give a 10/10 if there is any critical missing information or skipped answers.
 
 EVALUATION CRITERIA (score each 0-10):
 
@@ -221,7 +223,7 @@ EVALUATION CRITERIA (score each 0-10):
    - Penalize: excessive hedging ("I think maybe..."), self-deprecation, uncertainty markers, filler words (um, uh, like, basically, you know)
 
 FILLER WORD DETECTION:
-Count ALL instances of: um, uh, like (as filler), basically, you know, sort of, kind of, I mean, right?, actually (as filler). Be thorough.
+Count ALL instances of: um, uh, like (as filler), basically, you know, sort of, kind of, I mean, right?, actually (as filler). Be thorough. Extract a list of the exact unique filler words used.
 
 Return ONLY a valid JSON object with this EXACT structure:
 {
@@ -231,6 +233,7 @@ Return ONLY a valid JSON object with this EXACT structure:
   "confidence": <integer 0-10>,
   "overallScore": <integer 0-10>,
   "fillerWordCount": <integer>,
+  "fillerWordsList": [<array of strings of specific filler words detected, e.g. ["um", "like"]>],
   "feedback": "<DETAILED paragraph: 4-6 sentences. Start with overall impression. Reference specific answers. Identify the #1 strength and #1 weakness with concrete examples from the transcript. End with the single most impactful improvement they could make.>",
   "starFeedback": "<DETAILED STAR analysis: 3-5 sentences. Grade each STAR component (Situation/Task/Action/Result) separately. Quote or reference specific answers where they succeeded or failed at each component. If they didn't use STAR at all, explain exactly where and how they should have.>",
   "modelAnswer": "<Write a complete, polished EXAMPLE answer for the hardest or worst-answered question in the transcript. This should be 4-6 sentences using perfect STAR structure, demonstrating exactly what an ideal response looks like. Start by stating which question this model answer is for.>"
@@ -268,6 +271,7 @@ ${transcript}`;
       confidence:     Math.min(10, Math.max(0, parseInt(raw.confidence ?? scores.confidence ?? 0))),
       overallScore:   Math.min(10, Math.max(0, parseInt(raw.overallScore ?? scores.overallScore ?? 0))),
       fillerWordCount: parseInt(raw.fillerWordCount ?? raw.filler_word_count ?? 0),
+      fillerWordsList: Array.isArray(raw.fillerWordsList) ? raw.fillerWordsList : [],
       feedback:       raw.feedback || 'No detailed feedback was generated. Please try again.',
       starFeedback:   raw.starFeedback || raw.star_feedback || '',
       modelAnswer:    raw.modelAnswer || raw.model_answer || '',

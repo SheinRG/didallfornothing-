@@ -35,11 +35,9 @@ export default function InterviewPage() {
   const [hintLoading, setHintLoading] = useState(false);
 
   const [viewIndex, setViewIndex] = useState(0);
-  const [secondsLeft, setSecondsLeft] = useState(null);
   
   const isSpeakingRef = useRef(isSpeaking);
   const silenceTimerRef = useRef(null);
-  const countdownTimerRef = useRef(null);
 
   // Redirect if no session ID exists
   useEffect(() => {
@@ -80,34 +78,37 @@ export default function InterviewPage() {
 
   // Handle auto-advance silence detection
   useEffect(() => {
-    if (isListening && viewIndex === currentIndex) {
+    if (isListening && !isSpeaking && viewIndex === currentIndex) {
       clearTimeout(silenceTimerRef.current);
-      clearInterval(countdownTimerRef.current);
-      setSecondsLeft(null);
 
-      // 4 seconds of silence triggers the 3-second warning
+      // 5 seconds of silence directly triggers handleNext
       silenceTimerRef.current = setTimeout(() => {
         if (transcript.trim().length > 15) {
-          setSecondsLeft(3);
+          handleNext();
         }
-      }, 4000);
+      }, 5000);
     } else {
       clearTimeout(silenceTimerRef.current);
-      clearInterval(countdownTimerRef.current);
-      setSecondsLeft(null);
     }
 
     return () => {
       clearTimeout(silenceTimerRef.current);
-      clearInterval(countdownTimerRef.current);
     };
-  }, [transcript, isListening, viewIndex, currentIndex]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [transcript, isListening, isSpeaking, viewIndex, currentIndex]);
 
   const handleMicClick = () => {
     if (viewIndex !== currentIndex) return; // Ignore if looking at past questions
     if (isSpeaking) stopSpeaking(); // Stop AI voice if it's still talking
     if (isListening) stop();
     else start();
+  };
+
+  const handleEndTest = () => {
+    stop();
+    stopSpeaking();
+    clearTimeout(silenceTimerRef.current);
+    navigate('/dashboard');
   };
 
   const handleReplay = () => {
@@ -141,8 +142,6 @@ export default function InterviewPage() {
     stop(); // Ensure mic is off
     stopSpeaking(); // Stop TTS if playing
     clearTimeout(silenceTimerRef.current);
-    clearInterval(countdownTimerRef.current);
-    setSecondsLeft(null);
 
     const isLast = currentIndex + 1 >= totalQuestions;
 
@@ -193,18 +192,6 @@ export default function InterviewPage() {
     }
   };
 
-  // Handle countdown timer progression for auto-advance
-  useEffect(() => {
-    if (secondsLeft !== null && secondsLeft > 0) {
-      countdownTimerRef.current = setInterval(() => {
-        setSecondsLeft(prev => prev - 1);
-      }, 1000);
-    } else if (secondsLeft === 0) {
-      setSecondsLeft(null);
-      handleNext();
-    }
-    return () => clearInterval(countdownTimerRef.current);
-  }, [secondsLeft, handleNext]);
 
   if (sessionLoading) {
     return (
@@ -311,21 +298,8 @@ export default function InterviewPage() {
             </motion.div>
           )}
 
-          {/* Microphone button & Countdown wrapper */}
+          {/* Microphone button */}
           <div className="flex flex-col items-center gap-6 mt-4">
-            <AnimatePresence>
-              {secondsLeft !== null && viewIndex === currentIndex && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  className="bg-[#E8563B] text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] shadow-lg shadow-[#E8563B]/20"
-                >
-                  Auto-advancing in {secondsLeft}s...
-                </motion.div>
-              )}
-            </AnimatePresence>
-
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -355,21 +329,6 @@ export default function InterviewPage() {
               </svg>
             </motion.button>
           </div>
-
-          {/* Live transcript of current speech */}
-          {isListening && transcript && viewIndex === currentIndex && (
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="w-full max-w-md bg-[#111] p-4 rounded-2xl border border-[#E8563B]/30"
-            >
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-[#E8563B] animate-pulse" />
-                <span className="text-[10px] font-bold tracking-[0.2em] text-[#E8563B]">LIVE RECORDING</span>
-              </div>
-              <p className="text-sm text-white/80 leading-relaxed">{transcript}</p>
-            </motion.div>
-          )}
 
           {/* Navigation Controls */}
           <div className="flex items-center gap-3 mt-4">
@@ -406,6 +365,16 @@ export default function InterviewPage() {
               className="w-12 h-12 rounded-xl bg-[#1a1a1a] border border-[#333] flex items-center justify-center text-zinc-500 hover:text-white hover:border-[#E8563B] transition-all disabled:opacity-20"
             >
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+            </button>
+
+            <div className="w-px h-8 bg-[#333] mx-2"></div>
+
+            <button
+               onClick={handleEndTest}
+               title="End Test without grading"
+               className="w-12 h-12 rounded-xl bg-[#1a1a1a] border border-[#333] flex items-center justify-center text-red-500 hover:text-white hover:bg-red-500 hover:border-red-500 transition-all font-bold"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
           </div>
         </div>

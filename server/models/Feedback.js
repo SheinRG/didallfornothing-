@@ -21,6 +21,10 @@ const feedbackSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
+  fillerWordsList: {
+    type: [String],
+    default: [],
+  },
   overallScore: {
     type: Number,
     min: 0,

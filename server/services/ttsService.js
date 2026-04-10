@@ -1,46 +1,30 @@
 import dotenv from 'dotenv';
 dotenv.config({ path: '../.env' });
 
-const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
-const ELEVENLABS_VOICE_ID = process.env.ELEVENLABS_VOICE_ID || '21m00Tcm4TlvDq8ikWAM';
+import { MsEdgeTTS, OUTPUT_FORMAT } from 'msedge-tts';
 
 /**
- * Convert text to speech using ElevenLabs API.
- * Returns an audio Buffer (mpeg) that can be streamed to the client.
+ * Convert text to speech using Edge TTS (Microsoft Azure Neural).
+ * Returns an audio Buffer (mp3) that can be streamed to the client.
  */
 export async function textToSpeech(text) {
-  if (!ELEVENLABS_API_KEY) {
-    throw new Error('ELEVENLABS_API_KEY is not configured');
+  try {
+    const tts = new MsEdgeTTS();
+    
+    // Choose voice and output format
+    // Other highly natural options: 'en-US-JennyNeural', 'en-US-GuyNeural', 'en-US-SteffanNeural'
+    await tts.setMetadata('en-US-AriaNeural', OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);
+    
+    // Start stream - prepend a short pause to ensure the browser audio decoder doesn't skip the first word
+    const { audioStream } = tts.toStream("... " + text);
+    
+    return new Promise((resolve, reject) => {
+      const chunks = [];
+      audioStream.on('data', chunk => chunks.push(chunk));
+      audioStream.on('end', () => resolve(Buffer.concat(chunks)));
+      audioStream.on('error', err => reject(err));
+    });
+  } catch (err) {
+    throw new Error(`Edge TTS generation failed: ${err.message}`);
   }
-
-  const response = await fetch(
-    `https://api.elevenlabs.io/v1/text-to-speech/${ELEVENLABS_VOICE_ID}`,
-    {
-      method: 'POST',
-      headers: {
-        'Accept': 'audio/mpeg',
-        'Content-Type': 'application/json',
-        'xi-api-key': ELEVENLABS_API_KEY,
-      },
-      body: JSON.stringify({
-        text,
-        model_id: 'eleven_multilingual_v2',
-        voice_settings: {
-          stability: 0.5,
-          similarity_boost: 0.75,
-          style: 0.0,
-          use_speaker_boost: true,
-        },
-      }),
-    }
-  );
-
-  if (!response.ok) {
-    const errorBody = await response.text();
-    throw new Error(`ElevenLabs API error (${response.status}): ${errorBody}`);
-  }
-
-  // Convert the response to an ArrayBuffer, then to a Node Buffer
-  const arrayBuffer = await response.arrayBuffer();
-  return Buffer.from(arrayBuffer);
 }

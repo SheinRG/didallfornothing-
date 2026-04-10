@@ -25,6 +25,11 @@ const sessionSchema = new mongoose.Schema({
     enum: ['behavioral', 'technical', 'case-study'],
     required: true,
   },
+  difficulty: {
+    type: String,
+    enum: ['easy', 'medium', 'hard', 'expert'],
+    default: 'medium',
+  },
   questions: {
     type: [String],
     default: [],

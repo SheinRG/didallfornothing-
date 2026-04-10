@@ -154,7 +154,7 @@ export default function DashboardPage() {
             <button onClick={() => toggleTheme()} className="material-symbols-outlined text-zinc-400 hover:text-primary-container transition-colors">
               {isThemeLight ? 'light_mode' : 'dark_mode'}
             </button>
-            <button className="material-symbols-outlined text-zinc-400 hover:text-primary-container transition-colors">notifications</button>
+
             <div className="relative" ref={dropdownRef}>
               <button 
                 onClick={() => setDropdownOpen(!dropdownOpen)}

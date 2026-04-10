@@ -32,6 +32,15 @@ const steps = [
     ],
   },
   {
+    title: 'Select Difficulty Level',
+    options: [
+      { value: 'easy', label: 'Easy', icon: '🟢' },
+      { value: 'medium', label: 'Medium', icon: '🟡' },
+      { value: 'hard', label: 'Hard', icon: '🟠' },
+      { value: 'expert', label: 'Expert', icon: '🔴' },
+    ],
+  },
+  {
     title: 'Job Description (Optional)',
     type: 'textarea',
   },
@@ -57,7 +66,7 @@ export default function OnboardingPage() {
   const [loading, setLoading] = useState(false);
 
   const handleSelect = async (value) => {
-    const keys = ['role', 'level', 'interviewType', 'jobDescription'];
+    const keys = ['role', 'level', 'interviewType', 'difficulty', 'jobDescription'];
     const updated = { ...selections, [keys[currentStep]]: value };
     setSelections(updated);
     
@@ -157,7 +166,7 @@ export default function OnboardingPage() {
                   whileTap={{ scale: 0.97 }}
                   onClick={() => handleSelect(option.value)}
                   className={`flex flex-col items-center gap-4 rounded-2xl border p-8 transition-colors cursor-pointer ${
-                    selections[['role', 'level', 'interviewType'][currentStep]] === option.value
+                    selections[['role', 'level', 'interviewType', 'difficulty'][currentStep]] === option.value
                       ? 'border-[#E8563B] bg-[#E8563B]/10 shadow-[0_0_15px_rgba(232,86,59,0.2)]'
                       : 'border-[#333] bg-[#1a1a1a] hover:border-[#666]'
                   }`}

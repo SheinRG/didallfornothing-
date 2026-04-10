@@ -22,9 +22,9 @@ export const getSessions = async (req, res) => {
  */
 export const createSession = async (req, res) => {
   try {
-    const { role, level, interviewType, jobDescription } = req.body;
+    const { role, level, interviewType, difficulty, jobDescription } = req.body;
 
-    if (!role || !level || !interviewType) {
+    if (!role || !level || !interviewType || !difficulty) {
       return res.status(400).json({ message: 'All fields are required' });
     }
 
@@ -38,7 +38,8 @@ export const createSession = async (req, res) => {
       level,
       interviewType,
       resumeContext,
-      jobDescription
+      jobDescription,
+      difficulty
     );
 
     const session = await Session.create({
@@ -46,6 +47,7 @@ export const createSession = async (req, res) => {
       role,
       level,
       interviewType,
+      difficulty,
       questions,
       isAiGenerated,
       isResumeTailored,
