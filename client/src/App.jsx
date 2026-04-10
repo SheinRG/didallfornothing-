@@ -9,6 +9,7 @@ import OnboardingPage from './pages/OnboardingPage';
 import InterviewPage from './pages/InterviewPage';
 import FeedbackPage from './pages/FeedbackPage';
 import DashboardPage from './pages/DashboardPage';
+import ProtectedRoute from './components/auth/ProtectedRoute';
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -19,12 +20,12 @@ function AnimatedRoutes() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/resume" element={<ResumePage />} />
-        <Route path="/onboarding" element={<OnboardingPage />} />
-        <Route path="/interview" element={<InterviewPage />} />
-        <Route path="/feedback/:sessionId" element={<FeedbackPage />} />
-        <Route path="/feedback" element={<FeedbackPage />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/resume" element={<ProtectedRoute><ResumePage /></ProtectedRoute>} />
+        <Route path="/onboarding" element={<ProtectedRoute><OnboardingPage /></ProtectedRoute>} />
+        <Route path="/interview" element={<ProtectedRoute><InterviewPage /></ProtectedRoute>} />
+        <Route path="/feedback/:sessionId" element={<ProtectedRoute><FeedbackPage /></ProtectedRoute>} />
+        <Route path="/feedback" element={<ProtectedRoute><FeedbackPage /></ProtectedRoute>} />
+        <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
       </Routes>
     </AnimatePresence>
   );

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const API = 'http://localhost:5000/api';
+const API = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const metricMeta = [
   { key: 'clarity',    label: 'Clarity',    icon: 'settings_voice', desc: 'Precision of technical terminology and enunciation.' },

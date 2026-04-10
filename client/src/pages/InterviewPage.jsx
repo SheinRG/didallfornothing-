@@ -121,7 +121,8 @@ export default function InterviewPage() {
     if (!questions[viewIndex]) return;
     setHintLoading(true);
     try {
-      const response = await fetch(`http://localhost:5000/api/sessions/${sessionId}/hint`, {
+      const API = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      const response = await fetch(`${API}/sessions/${sessionId}/hint`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -150,7 +151,8 @@ export default function InterviewPage() {
       setSubmitting(true);
       try {
         const fullAnswers = [...answers, currentAnswer];
-        const response = await fetch('http://localhost:5000/api/feedback', {
+        const API = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+        const response = await fetch(`${API}/feedback`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
@@ -171,7 +173,8 @@ export default function InterviewPage() {
         if (currentAnswer && currentAnswer.length > 20 && totalQuestions < 8 && Math.random() > 0.5) {
         setSubmitting(true);
         try {
-          const response = await fetch(`http://localhost:5000/api/sessions/${sessionId}/followup`, {
+          const API = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+          const response = await fetch(`${API}/sessions/${sessionId}/followup`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',

@@ -103,7 +103,8 @@ export default function useSpeech() {
             const formData = new FormData();
             formData.append('audio', audioBlob, 'answer.webm');
             
-            const response = await fetch('http://localhost:5000/api/stt', {
+            const API = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+            const response = await fetch(`${API}/stt`, {
               method: 'POST',
               body: formData,
             });
