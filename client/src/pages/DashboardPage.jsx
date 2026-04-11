@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Cover } from '../components/ui/cover';
 
 const API = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -14,14 +14,62 @@ const itemVariants = {
   animate: { opacity: 1, y: 0 },
 };
 
+function SparkLine({ data }) {
+  if (!data || data.length < 2) return <div className="text-zinc-600 text-xs text-center py-4">Complete more sessions to see your trend</div>;
+  const width = 300;
+  const height = 40;
+  const max = 10;
+  const min = 0;
+  
+  const points = data.map((val, i) => {
+    const x = (i / (data.length - 1)) * width;
+    // adding padding so stroke doesn't get clipped
+    const y = (height - 4) - ((val - min) / (max - min)) * (height - 8) + 4;
+    return `${x},${y}`;
+  }).join(' ');
+
+  return (
+    <div className="mt-8">
+      <div className="flex justify-between items-center mb-2">
+        <span className="text-[10px] tracking-widest uppercase font-bold text-zinc-500">Performance Trend</span>
+        <span className="text-[10px] tracking-widest uppercase font-bold text-[#e04f32]">Last {data.length} Sessions</span>
+      </div>
+      <div className="w-full relative bg-black/20 rounded-xl p-4 border border-white/5">
+        <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-[60px] overflow-visible">
+          <polyline
+            fill="none"
+            stroke="#e04f32"
+            strokeWidth="3"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            points={points}
+            className="drop-shadow-[0_0_8px_rgba(224,79,50,0.5)]"
+          />
+          {data.map((val, i) => {
+            const x = (i / (data.length - 1)) * width;
+            const y = (height - 4) - ((val - min) / (max - min)) * (height - 8) + 4;
+            return (
+              <circle key={i} cx={x} cy={y} r="4" fill="#111" stroke="#e04f32" strokeWidth="2" />
+            );
+          })}
+        </svg>
+      </div>
+    </div>
+  );
+}
+
 export default function DashboardPage() {
   const navigate = useNavigate();
   const [userName, setUserName] = useState('');
   const [sessions, setSessions] = useState([]);
+  const [visibleHistoryCount, setVisibleHistoryCount] = useState(3);
+  const [isExploring, setIsExploring] = useState(false);
   const [stats, setStats] = useState({ averageScore: 0, trend: [] });
   const [loading, setLoading] = useState(true);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
+  const [personalityOpen, setPersonalityOpen] = useState(false);
+  const [selectedPersonality, setSelectedPersonality] = useState('standard');
   const [userProfile, setUserProfile] = useState({});
   const [formData, setFormData] = useState({ email: '', password: '', targetRoles: [] });
   const [isThemeLight, setIsThemeLight] = useState(false);
@@ -292,13 +340,50 @@ export default function DashboardPage() {
                   })}
                 </div>
 
-                <div className="grid grid-cols-2 gap-5">
-                  <Link to="/onboarding" className="bg-[#e04f32] text-white py-4 px-6 rounded-full font-semibold text-xs tracking-widest uppercase transition-transform duration-300 hover:scale-105 text-center">
-                    Start Interview
-                  </Link>
-                  <Link to="/resume" className="bg-[#1a1a1a] text-white py-4 px-6 rounded-full font-semibold text-xs tracking-widest uppercase transition-colors duration-300 hover:bg-[#252525] text-center border border-white/5 border-t-white/10">
-                    Resume Practice
-                  </Link>
+                <SparkLine data={stats.trend} />
+
+                <div className="mt-10 relative">
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-[10px] tracking-widest uppercase font-bold text-zinc-500">Interviewer Personality</span>
+                    <button 
+                      onClick={() => setPersonalityOpen(!personalityOpen)}
+                      className="text-[#e04f32] text-xs font-bold uppercase tracking-widest flex items-center gap-1 hover:brightness-125 transition-all"
+                    >
+                      {selectedPersonality === 'standard' ? 'Standard HR' : selectedPersonality === 'mentor' ? 'Supportive Mentor' : 'FAANG Griller'}
+                      <span className="material-symbols-outlined text-sm">{personalityOpen ? 'expand_less' : 'expand_more'}</span>
+                    </button>
+                  </div>
+                  
+                  {personalityOpen && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="absolute bottom-full left-0 right-0 mb-4 bg-[#1a1a1a] border border-white/10 rounded-2xl p-2 shadow-2xl z-50 flex flex-col gap-1"
+                    >
+                      {[{ id: 'standard', title: 'Standard HR', desc: 'Professional, neutral, balanced.' },
+                        { id: 'mentor', title: 'Supportive Mentor', desc: 'Encouraging tone, easier follow-ups.' },
+                        { id: 'faang', title: 'FAANG Griller', desc: 'High stress, skeptical, deep technical probes.' }
+                      ].map(p => (
+                        <button 
+                          key={p.id}
+                          onClick={() => { setSelectedPersonality(p.id); setPersonalityOpen(false); }}
+                          className={`flex flex-col items-start p-3 rounded-xl transition-colors ${selectedPersonality === p.id ? 'bg-[#e04f32]/20 border border-[#e04f32]/50' : 'hover:bg-white/5 border border-transparent'}`}
+                        >
+                          <span className={`text-sm font-bold ${selectedPersonality === p.id ? 'text-[#e04f32]' : 'text-white'}`}>{p.title}</span>
+                          <span className="text-[10px] text-zinc-500 tracking-wide mt-1">{p.desc}</span>
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
+
+                  <div className="grid grid-cols-2 gap-5 mt-4">
+                    <Link to="/onboarding" state={{ personality: selectedPersonality }} className="bg-[#e04f32] text-white py-4 px-6 rounded-full font-semibold text-xs tracking-widest uppercase transition-transform duration-300 hover:scale-105 text-center shadow-lg shadow-[#e04f32]/20">
+                      Start Interview
+                    </Link>
+                    <Link to="/resume" className="bg-[#1a1a1a] text-white py-4 px-6 rounded-full font-semibold text-xs tracking-widest uppercase transition-colors duration-300 hover:bg-[#252525] text-center border border-white/5 border-t-white/10">
+                      Resume Practice
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>
@@ -308,7 +393,23 @@ export default function DashboardPage() {
           <div className="col-span-12 xl:col-span-7 space-y-8">
             <div className="flex items-center justify-between px-2">
               <h3 className="text-xl font-bold text-white tracking-tight uppercase">Interview History</h3>
-              <Link to="/history" className="text-zinc-500 hover:text-white text-[10px] font-semibold tracking-[0.2em] transition-colors uppercase">Explore Full History</Link>
+              {sessions.length > 3 && (
+                <button 
+                  onClick={() => {
+                    if (isExploring) {
+                      setIsExploring(false);
+                      setVisibleHistoryCount(3);
+                    } else {
+                      setIsExploring(true);
+                      setVisibleHistoryCount(6);
+                    }
+                  }}
+                  className="text-zinc-500 hover:text-white text-[10px] font-semibold tracking-[0.2em] transition-colors uppercase flex items-center gap-1 focus:outline-none"
+                >
+                  {isExploring ? 'Collapse History' : 'Explore Full History'}
+                  <span className="material-symbols-outlined text-xs">{isExploring ? 'expand_less' : 'expand_more'}</span>
+                </button>
+              )}
             </div>
 
             {sessions.length === 0 ? (
@@ -324,14 +425,17 @@ export default function DashboardPage() {
               </div>
             ) : (
               <div className="space-y-6">
-                {sessions.slice(0, 5).map((session) => (
-                  <motion.div
-                    key={session._id}
-                    variants={itemVariants}
-                    initial="initial"
-                    animate="animate"
-                    className="glass-panel rounded-[2.5rem] p-8 group card-pop"
-                  >
+                <AnimatePresence>
+                  {sessions.slice(0, visibleHistoryCount).map((session) => (
+                    <motion.div
+                      key={session._id}
+                      layout
+                      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.9 }}
+                      transition={{ duration: 0.3, ease: 'easeOut' }}
+                      className="glass-panel rounded-[2.5rem] p-8 group card-pop"
+                    >
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
                       <div className="space-y-4">
                         <div className="flex flex-wrap items-center gap-2.5">
@@ -377,6 +481,18 @@ export default function DashboardPage() {
                     </div>
                   </motion.div>
                 ))}
+                </AnimatePresence>
+                
+                {isExploring && visibleHistoryCount < sessions.length && (
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex justify-center pt-4">
+                    <button
+                      onClick={() => setVisibleHistoryCount(prev => prev + 3)}
+                      className="px-8 py-3 bg-white/5 border border-white/10 text-zinc-400 hover:text-white hover:bg-white/10 rounded-full text-xs font-semibold uppercase tracking-widest transition-all hover:scale-105 active:scale-95 flex items-center gap-2"
+                    >
+                      <span className="material-symbols-outlined text-sm">history</span> VIEW MORE
+                    </button>
+                  </motion.div>
+                )}
               </div>
             )}
           </div>

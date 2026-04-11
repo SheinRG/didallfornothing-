@@ -6,12 +6,14 @@ import Button from '../components/ui/Button';
 import useInterview from '../hooks/useInterview';
 import useSpeech from '../hooks/useSpeech';
 import useTTS from '../hooks/useTTS';
+import DraggableCamera from '../components/interview/DraggableCamera';
 
 export default function InterviewPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const sessionId = location.state?.sessionId;
   const transcriptContainerRef = useRef(null);
+  const webcamRef = useRef(null);
 
   const {
     questions,
@@ -36,6 +38,7 @@ export default function InterviewPage() {
   const [hintLoading, setHintLoading] = useState(false);
 
   const [viewIndex, setViewIndex] = useState(0);
+  const [snapshots, setSnapshots] = useState([]);
   
   const isSpeakingRef = useRef(isSpeaking);
   const silenceTimerRef = useRef(null);
@@ -125,6 +128,27 @@ export default function InterviewPage() {
     const isLast = currentIndex + 1 >= totalQuestions;
     const currentAnswer = finalTranscript || transcript;
 
+    let currentSnapshot = null;
+    if (webcamRef.current && webcamRef.current.readyState >= 2) {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = webcamRef.current.videoWidth || 640;
+        canvas.height = webcamRef.current.videoHeight || 480;
+        if (canvas.width > 0) {
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(webcamRef.current, 0, 0, canvas.width, canvas.height);
+          // Get base64 string without prefix
+          currentSnapshot = canvas.toDataURL('image/jpeg', 0.5).split(',')[1];
+        }
+      } catch (e) {
+        console.error("Frame capture error:", e);
+      }
+    }
+    
+    // Add to state
+    const updatedSnapshots = [...snapshots, currentSnapshot];
+    setSnapshots(updatedSnapshots);
+
     if (isLast) {
       setSubmitting(true);
       try {
@@ -134,7 +158,7 @@ export default function InterviewPage() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
-          body: JSON.stringify({ sessionId, answers: fullAnswers }),
+          body: JSON.stringify({ sessionId, answers: fullAnswers, snapshots: updatedSnapshots }),
         });
 
         if (!response.ok) throw new Error('Failed to generate feedback');
@@ -480,6 +504,9 @@ export default function InterviewPage() {
           Voiced by ElevenLabs
         </a>
       </div>
+
+      {/* Draggable Webcam Component */}
+      <DraggableCamera ref={webcamRef} />
     </PageWrapper>
   );
 }

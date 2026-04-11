@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import RepracticeModal from '../components/interview/RepracticeModal';
 
 const API = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -94,6 +97,9 @@ export default function FeedbackPage() {
   const [modelOpen, setModelOpen] = useState(false);
   const [showFillerWords, setShowFillerWords] = useState(false);
   const [isThemeLight, setIsThemeLight] = useState(false);
+  
+  const [activePracticeQ, setActivePracticeQ] = useState(null);
+  const [reviewOpen, setReviewOpen] = useState(false);
 
   // Sync theme from localStorage
   useEffect(() => {
@@ -140,28 +146,57 @@ export default function FeedbackPage() {
     fetchAll();
   }, [sessionId]);
 
-  const handleDownloadTranscript = () => {
-    if (!session || !session.questions || !session.answers) return;
+  const handleDownloadPDF = () => {
+    if (!feedbackData || !session) return;
+    const doc = new jsPDF();
     
-    let content = `INTERVIEW TRANSCRIPT\n--------------------------\n`;
-    content += `Role: ${session.role.toUpperCase()}\n`;
-    content += `Difficulty: ${session.difficulty ? session.difficulty.toUpperCase() : 'N/A'}\n`;
-    content += `Date: ${new Date(session.createdAt).toLocaleDateString()}\n\n`;
+    // Colors & Branding
+    const brandColor = [232, 86, 59];
     
-    session.questions.forEach((q, i) => {
-      content += `[COACH]: ${q}\n`;
-      content += `[YOU]: ${session.answers[i] || '(No response recorded)'}\n\n`;
+    doc.setFontSize(22);
+    doc.setTextColor(brandColor[0], brandColor[1], brandColor[2]);
+    doc.text("ORION AI - Interview Report", 14, 22);
+    
+    doc.setTextColor(60, 60, 60);
+    doc.setFontSize(11);
+    doc.text(`Role: ${session.role.toUpperCase()}`, 14, 32);
+    doc.text(`Level: ${session.level.toUpperCase()}`, 14, 38);
+    doc.text(`Overall Score: ${Math.round(feedbackData.overallScore)}/10`, 14, 44);
+    
+    doc.setFontSize(14);
+    doc.setTextColor(0, 0, 0);
+    doc.text("Executive Summary", 14, 58);
+    doc.setFontSize(10);
+    doc.setTextColor(80, 80, 80);
+    const splitFeedback = doc.splitTextToSize(feedbackData.feedback || '', 180);
+    doc.text(splitFeedback, 14, 66);
+
+    let startY = 66 + (splitFeedback.length * 5) + 12;
+    doc.setFontSize(14);
+    doc.setTextColor(0, 0, 0);
+    doc.text("Question Breakdown", 14, startY);
+    
+    const tableData = session.questions.map((q, i) => [
+      `Q${i+1}`, 
+      q, 
+      session.answers[i] || 'No response recorded'
+    ]);
+
+    autoTable(doc, {
+      startY: startY + 6,
+      head: [['#', 'Question', 'Your Response']],
+      body: tableData,
+      theme: 'grid',
+      headStyles: { fillColor: brandColor },
+      styles: { fontSize: 10, cellPadding: 4 },
+      columnStyles: {
+        0: { cellWidth: 12 },
+        1: { cellWidth: 70 },
+        2: { cellWidth: 100 }
+      }
     });
-    
-    const blob = new Blob([content], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `Transcript_${sessionId.slice(-4)}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+
+    doc.save(`Orion_Report_${sessionId.slice(-4)}.pdf`);
   };
 
   const [retryLoading, setRetryLoading] = useState(false);
@@ -294,24 +329,23 @@ export default function FeedbackPage() {
             transition={{ delay: 0.2, duration: 0.4 }}
             className="flex gap-4"
           >
-            <button
-              onClick={handleDownloadTranscript}
-              className="px-6 py-3 bg-surface-container-high rounded-xl font-semibold text-sm hover:bg-surface-container-highest transition-all active:scale-95 flex items-center gap-2 border border-white/5 text-[#E8563B]"
-            >
-              <span className="material-symbols-outlined text-sm">download</span> TRANSCRIPT
-            </button>
-            <button
-              onClick={() => window.print()}
-              className="px-6 py-3 bg-surface-container-high rounded-xl font-semibold text-sm hover:bg-surface-container-highest transition-all active:scale-95 flex items-center gap-2 border border-white/5"
-            >
-              <span className="material-symbols-outlined text-sm">picture_as_pdf</span> PDF
-            </button>
-            <Link
-              to="/onboarding"
-              className="px-6 py-3 bg-primary-container rounded-xl font-semibold text-sm hover:brightness-110 transition-all active:scale-95 flex items-center gap-2"
-            >
-              <span className="material-symbols-outlined text-sm">replay</span> NEW SESSION
-            </Link>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <button
+                onClick={handleDownloadPDF}
+                className="px-6 py-3 bg-surface-container-high rounded-xl font-semibold text-sm hover:bg-surface-container-highest transition-all flex items-center gap-2 border border-white/5 text-white"
+              >
+                <span className="material-symbols-outlined text-sm">picture_as_pdf</span> PDF
+              </button>
+            </motion.div>
+            
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Link
+                to="/onboarding"
+                className="px-6 py-3 bg-primary-container rounded-xl font-semibold text-sm hover:brightness-110 transition-all flex items-center gap-2"
+              >
+                <span className="material-symbols-outlined text-sm">replay</span> NEW SESSION
+              </Link>
+            </motion.div>
           </motion.div>
         </div>
 
@@ -498,29 +532,107 @@ export default function FeedbackPage() {
               </motion.div>
             </div>
           )}
+
+          {/* Question-by-Question Breakdown & Re-Practice */}
+          <div className="col-span-12">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6, duration: 0.5 }}
+              className="bg-surface-container-low rounded-[2.5rem] border border-white/5 p-10 theme-light-card card-pop mt-4"
+            >
+              <button
+                onClick={() => setReviewOpen(prev => !prev)}
+                className="w-full flex flex-col md:flex-row md:items-center justify-between text-left focus:outline-none group mb-2 gap-4"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-2.5 h-12 bg-[#E8563B] rounded-full shrink-0" />
+                  <div>
+                    <h3 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">Answer Review & Re-practice</h3>
+                    <p className="text-on-surface-variant text-base mt-2">Review your specific answers below. Click Re-practice for targeted feedback.</p>
+                  </div>
+                </div>
+                <motion.span
+                  animate={{ rotate: reviewOpen ? 180 : 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="material-symbols-outlined text-[#E8563B] text-3xl group-hover:text-white transition-colors self-end md:self-auto"
+                >
+                  expand_more
+                </motion.span>
+              </button>
+
+              <AnimatePresence>
+                {reviewOpen && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.3, ease: 'easeOut' }}
+                    className="overflow-hidden"
+                  >
+                    <div className="space-y-6 pt-8 mt-4 border-t border-white/5">
+                      {session?.questions?.map((q, idx) => (
+                        <div key={idx} className="bg-[#1a1a1a] border border-[#333] rounded-2xl p-6 transition-all hover:border-[#444]">
+                          <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
+                            <div className="flex-1 space-y-4">
+                              <div>
+                                <span className="text-[10px] font-bold tracking-[0.2em] text-[#E8563B] uppercase mb-1 block">Question {idx + 1}</span>
+                                <h4 className="text-white font-semibold text-lg leading-snug">{q}</h4>
+                              </div>
+                              <div className="bg-black/30 p-4 rounded-xl border border-white/5">
+                                <p className="text-zinc-400 font-mono text-sm leading-relaxed whitespace-pre-wrap">
+                                  {session.answers[idx] || <span className="italic text-zinc-600">No response recorded.</span>}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="shrink-0 pt-2">
+                              <button
+                                onClick={() => setActivePracticeQ(q)}
+                                className="w-full md:w-auto px-6 py-3 bg-[#E8563B]/10 text-[#E8563B] border border-[#E8563B]/30 hover:bg-[#E8563B] hover:text-white rounded-xl font-bold text-xs tracking-widest uppercase transition-colors"
+                              >
+                                Re-practice
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          </div>
         </div>
 
         {/* ── Actions ──────────────────────────────── */}
         <div className="relative z-10 flex justify-center gap-6 mt-16 flex-wrap">
-          <button
-            onClick={handleRetry}
-            disabled={retryLoading}
-            className={`px-10 py-4 bg-[#E8563B] text-white rounded-xl font-semibold text-sm tracking-widest uppercase hover:brightness-110 transition-all active:scale-95 flex items-center justify-center min-w-[240px] ${retryLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
-          >
-            {retryLoading ? 'PREPARING...' : 'RETRY SAME INTERVIEW'}
-          </button>
-          <Link
-            to="/onboarding"
-            className="px-10 py-4 bg-primary-container text-white rounded-xl font-semibold text-sm tracking-widest uppercase hover:brightness-110 transition-all active:scale-95"
-          >
-            Start New Interview
-          </Link>
-          <Link
-            to="/dashboard"
-            className="px-10 py-4 bg-surface-container-high text-white rounded-xl font-semibold text-sm tracking-widest uppercase border border-white/5 hover:bg-surface-container-highest transition-all active:scale-95"
-          >
-            Back to Dashboard
-          </Link>
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <button
+              onClick={handleRetry}
+              disabled={retryLoading}
+              className={`px-10 py-4 bg-[#E8563B] text-white rounded-xl font-semibold text-sm tracking-widest uppercase hover:brightness-110 transition-all flex items-center justify-center min-w-[240px] ${retryLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
+            >
+              {retryLoading ? 'PREPARING...' : 'RETRY SAME INTERVIEW'}
+            </button>
+          </motion.div>
+          
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Link
+              to="/onboarding"
+              className="px-10 py-4 bg-primary-container text-white rounded-xl font-semibold text-sm tracking-widest uppercase hover:brightness-110 transition-all flex h-full items-center"
+            >
+              Start New Interview
+            </Link>
+          </motion.div>
+          
+          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+            <Link
+              to="/dashboard"
+              className="px-10 py-4 bg-surface-container-high text-white rounded-xl font-semibold text-sm tracking-widest uppercase border border-white/5 hover:bg-surface-container-highest transition-all flex h-full items-center"
+            >
+              Back to Dashboard
+            </Link>
+          </motion.div>
         </div>
       </main>
 
@@ -540,6 +652,14 @@ export default function FeedbackPage() {
           </p>
         </div>
       </footer>
+
+      {/* Re-practice Modal Overlay */}
+      <RepracticeModal 
+        isOpen={!!activePracticeQ}
+        onClose={() => setActivePracticeQ(null)}
+        question={activePracticeQ}
+        session={session}
+      />
     </div>
   );
 }

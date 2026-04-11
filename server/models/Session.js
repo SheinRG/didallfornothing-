@@ -30,6 +30,11 @@ const sessionSchema = new mongoose.Schema({
     enum: ['easy', 'medium', 'hard', 'expert'],
     default: 'medium',
   },
+  personality: {
+    type: String,
+    enum: ['standard', 'mentor', 'faang'],
+    default: 'standard',
+  },
   questions: {
     type: [String],
     default: [],

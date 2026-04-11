@@ -81,7 +81,7 @@ export async function extractTextFromImage(base64Image, mimeType) {
  * generateQuestions(role, level, interviewType, resumeContext)
  * If resumeContext is provided, generates personalized questions.
  */
-export async function generateQuestions(role, level, interviewType, resumeContext = null, jobDescription = '', difficulty = 'medium') {
+export async function generateQuestions(role, level, interviewType, resumeContext = null, jobDescription = '', difficulty = 'medium', personality = 'standard') {
   if (!process.env.GROQ_API_KEY) {
     console.warn('⚠️ GROQ_API_KEY missing - using fallback mock questions');
     return {
@@ -100,10 +100,17 @@ export async function generateQuestions(role, level, interviewType, resumeContex
 
   try {
     let prompt;
+    
+    let personalityPrompt = "Adopt the persona of a professional, standard HR technical interviewer.";
+    if (personality === 'mentor') {
+        personalityPrompt = "Adopt the persona of a highly supportive mentor. Your tone (especially in the intro) should be encouraging and focus on drawing out their strengths in a friendly manner.";
+    } else if (personality === 'faang') {
+        personalityPrompt = "Adopt the persona of a high-stress, skeptical FAANG 'bar raiser' interviewer. Your tone should be extremely formal, slightly intimidating, and push their limits.";
+    }
 
     if (resumeContext) {
       let jdContext = jobDescription ? `\n\nJOB DESCRIPTION (TARGET): \n${jobDescription}\n` : '';
-      prompt = `You are an elite interview coach. Based on the candidate's resume, generate interview questions that are highly personalized.${jdContext}
+      prompt = `You are an elite interview coach. ${personalityPrompt} Based on the candidate's resume, generate interview questions that are highly personalized.${jdContext}
 
 CANDIDATE RESUME CONTEXT:
 - Name: ${resumeContext.name || 'Unknown'}
@@ -118,7 +125,7 @@ Generate 3 questions specifically tailored to this candidate's resume (referenci
 Return ONLY a JSON object with a "questions" array of 6 strings. The very first question MUST be a friendly introduction acting like an interviewer meeting them for the first time, similar to: "How are you ${resumeContext.name || 'there'}? I was looking at your resume, specifically your experience with [pick a skill/project], and let's move forward with the interview." Then generate 2 questions tailored to the resume, 2 behavioral questions, and 1 role-specific question.`;
     } else {
       let jdContext = jobDescription ? `\n\nJOB DESCRIPTION (TARGET):\n${jobDescription}\n Ensure questions directly address these specific job requirements.` : '';
-      prompt = `You are an elite interview coach. Given a role, level, and interview type, generate 6 specific and challenging interview questions. The difficulty of these questions should be exactly ${difficulty.toUpperCase()}. Return ONLY a JSON object with a "questions" array of strings.\n\nThe very first question MUST be a friendly introduction: "How are you doing today? I see you're interviewing for the ${level} ${role} role. Let's move forward with the interview." Then generate 3 ${interviewType} questions and 2 behavioral/situational questions.${jdContext}`;
+      prompt = `You are an elite interview coach. ${personalityPrompt} Given a role, level, and interview type, generate 6 specific and challenging interview questions. The difficulty of these questions should be exactly ${difficulty.toUpperCase()}. Return ONLY a JSON object with a "questions" array of strings.\n\nThe very first question MUST be a friendly introduction: "How are you doing today? I see you're interviewing for the ${level} ${role} role. Let's move forward with the interview." Then generate 3 ${interviewType} questions and 2 behavioral/situational questions.${jdContext}`;
     }
 
     const completion = await groq.chat.completions.create({
@@ -182,12 +189,16 @@ Return ONLY a JSON object with a "questions" array of 6 strings. The very first 
  * generateReaction(question, answer)
  * Provides a very brief, conversational human-like reaction to an answer.
  */
-export async function generateReaction(question, answer) {
+export async function generateReaction(question, answer, personality = 'standard') {
   if (!process.env.GROQ_API_KEY) {
     return "Great point."; // Fast fallback
   }
 
-  const prompt = `You are a friendly, professional interview coach.
+  let personaDetail = "friendly, professional interview coach";
+  if (personality === 'mentor') personaDetail = "highly supportive mentor who is constantly encouraging and kind";
+  if (personality === 'faang') personaDetail = "cold, skeptical, high-stress FAANG interviewer who is hard to impress";
+
+  const prompt = `You are a ${personaDetail}.
 The candidate just answered the following question:
 Question: "${question}"
 Answer: "${answer}"
@@ -219,10 +230,10 @@ Do NOT ask another question. Do NOT give long feedback. Just a quick transitiona
 }
 
 /**
- * analyseAnswer(transcript)
+ * analyseAnswer(transcript, snapshots)
  * Analyzes the full interview transcript and returns rich, actionable feedback.
  */
-export async function analyseAnswer(transcript) {
+export async function analyseAnswer(transcript, snapshots = []) {
   if (!process.env.GROQ_API_KEY) {
     return {
       clarity: 7,
@@ -237,8 +248,36 @@ export async function analyseAnswer(transcript) {
     };
   }
 
+  // Optional: Vision-based Body Language Analysis
+  let bodyLanguageContext = "";
+  if (snapshots && snapshots.length > 0) {
+    try {
+      // Grab the clearest snapshot (middle of interview or first valid one)
+      const validSnapshot = snapshots.filter(s => !!s)[Math.floor(snapshots.length / 2)] || snapshots.find(s => !!s);
+      if (validSnapshot) {
+        const visionRes = await groq.chat.completions.create({
+          messages: [
+            {
+              role: 'user',
+              content: [
+                { type: 'text', text: 'You are an interview behavioral analyst. Look at this single frame from the candidate\'s webcam during their interview. Analyze their body language, posture, and facial expression. Keep it to 2 brief sentences.' },
+                { type: 'image_url', image_url: { url: `data:image/jpeg;base64,${validSnapshot}` } }
+              ]
+            }
+          ],
+          model: 'llama-3.2-11b-vision-preview',
+          temperature: 0.2,
+          max_tokens: 100,
+        });
+        bodyLanguageContext = `\n\nNON-VERBAL ANALYSIS (From Webcam Snapshot): \n"${visionRes.choices[0]?.message?.content || 'Neutral body language.'}"\nNote: Incorporate a remark about their body language in the main feedback.`;
+      }
+    } catch (err) {
+      console.warn("Vision AI failed to analyze body language:", err.message);
+    }
+  }
+
   try {
-    const prompt = `You are a supportive, world-class interview coach and communication mentor. You have been given a complete interview transcript to evaluate.
+    const prompt = `You are a supportive, world-class interview coach and communication mentor. You have been given a complete interview transcript to evaluate.${bodyLanguageContext}
 
 Your role is to be an ENCOURAGING MENTOR — someone who genuinely wants this candidate to improve. Be SPECIFIC and ACTIONABLE with your feedback, but always lead with what they did well before addressing areas for growth. Celebrate effort and progress.
 
@@ -386,13 +425,17 @@ Provide a very brief 1-2 sentence hint or 2 short bullet points on what they sho
  * generateFollowUp(question, answer)
  * Generates a follow-up question based on the user's answer.
  */
-export async function generateFollowUp(question, answer) {
+export async function generateFollowUp(question, answer, personality = 'standard') {
   if (!process.env.GROQ_API_KEY) {
     return "That's interesting. Can you tell me more about the specific challenges you faced?";
   }
 
+  let personaDetail = "tough but fair interview coach";
+  if (personality === 'mentor') personaDetail = "supportive mentor trying to gently guide them to expand their thought";
+  if (personality === 'faang') personaDetail = "skeptical, high-stress FAANG 'bar raiser' who scrutinizes every claim and probes for edge-case failures";
+
   try {
-    const prompt = `You are a tough but fair interview coach. 
+    const prompt = `You are a ${personaDetail}.
 The user was asked: "${question}"
 Their answer was: "${answer}"
 

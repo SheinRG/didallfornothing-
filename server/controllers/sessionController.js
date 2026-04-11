@@ -23,7 +23,7 @@ export const getSessions = async (req, res) => {
  */
 export const createSession = async (req, res) => {
   try {
-    const { role, level, interviewType, difficulty, jobDescription, existingQuestions } = req.body;
+    const { role, level, interviewType, difficulty, jobDescription, existingQuestions, personality } = req.body;
 
     if (!role || !level || !interviewType || !difficulty) {
       return res.status(400).json({ message: 'All fields are required' });
@@ -50,7 +50,8 @@ export const createSession = async (req, res) => {
         interviewType,
         resumeContext,
         jobDescription,
-        difficulty
+        difficulty,
+        personality
       );
       questions = generated.questions;
       isAiGenerated = generated.isAiGenerated;
@@ -67,6 +68,7 @@ export const createSession = async (req, res) => {
       isAiGenerated,
       isResumeTailored,
       jobDescription,
+      personality: personality || 'standard',
     });
 
     res.status(201).json({ message: 'Session created successfully', session });
@@ -118,10 +120,12 @@ export const getFollowUp = async (req, res) => {
       return res.status(400).json({ message: 'Question and answer are required' });
     }
     
-    const followup = await generateFollowUp(question, answer);
+    const session = await Session.findOne({ _id: req.params.id, userId: req.user.userId });
+    const personality = session ? session.personality : 'standard';
+
+    const followup = await generateFollowUp(question, answer, personality);
     
     // Let's persist it to the session question array so feedback analysis sees it
-    const session = await Session.findOne({ _id: req.params.id, userId: req.user.userId });
     if (session) {
       session.questions.push(followup);
       await session.save();
@@ -145,8 +149,11 @@ export const getReaction = async (req, res) => {
       return res.status(400).json({ message: 'Question and answer are required' });
     }
 
+    const session = await Session.findOne({ _id: req.params.id, userId: req.user.userId });
+    const personality = session ? session.personality : 'standard';
+
     const { generateReaction } = await import('../services/groqService.js');
-    const reaction = await generateReaction(question, answer);
+    const reaction = await generateReaction(question, answer, personality);
     
     res.status(200).json({ reaction });
   } catch (err) {

@@ -8,7 +8,7 @@ import { analyseAnswer } from '../services/groqService.js';
  */
 export const createFeedback = async (req, res) => {
   try {
-    const { sessionId, answers } = req.body;
+    const { sessionId, answers, snapshots } = req.body;
 
     if (!sessionId || !answers) {
       return res.status(400).json({ message: 'Session ID and answers are required' });
@@ -28,7 +28,7 @@ export const createFeedback = async (req, res) => {
       transcript += `Q: ${session.questions[i]}\nA: ${ans}\n\n`;
     }
 
-    const analysis = await analyseAnswer(transcript);
+    const analysis = await analyseAnswer(transcript, snapshots);
 
     const feedback = await Feedback.create({
       sessionId,
@@ -88,5 +88,26 @@ export const getFeedbackStats = async (req, res) => {
     res.status(200).json({ averageScore, trend });
   } catch (err) {
     res.status(500).json({ message: 'Error fetching feedback stats' });
+  }
+};
+
+/**
+ * POST /api/feedback/single
+ * Target Rep Practice: Analyze a single question and answer.
+ */
+export const analyzeSingleAnswer = async (req, res) => {
+  try {
+    const { question, answer } = req.body;
+    if (!question || !answer) {
+      return res.status(400).json({ message: 'Question and answer are required' });
+    }
+
+    const transcript = `Q: ${question}\nA: ${answer}\n\n`;
+    const analysis = await analyseAnswer(transcript);
+
+    res.status(200).json({ analysis });
+  } catch (err) {
+    console.error('analyzeSingleAnswer error:', err);
+    res.status(500).json({ message: 'Error analyzing answer' });
   }
 };

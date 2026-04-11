@@ -5,3 +5,4 @@ client/dist
 *.zip
 stitch_design/
 stitch_extracted/
+temp_stt_*.webm

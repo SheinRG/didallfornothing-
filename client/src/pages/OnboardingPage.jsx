@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import PageWrapper from '../components/ui/PageWrapper';
 import Button from '../components/ui/Button';
@@ -57,6 +57,9 @@ const containerVariants = {
 
 export default function OnboardingPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const personality = location.state?.personality || 'standard';
+  
   const [currentStep, setCurrentStep] = useState(0);
   const [selections, setSelections] = useState({});
 
@@ -86,7 +89,7 @@ export default function OnboardingPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify(finalSelections),
+        body: JSON.stringify({ ...finalSelections, personality }),
       });
 
         const data = await response.json();
