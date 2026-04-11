@@ -20,6 +20,7 @@ export default function InterviewPage() {
     totalQuestions,
     nextQuestion,
     insertNextQuestion,
+    modifyNextQuestion,
     loading: sessionLoading,
     answers,
     isAiGenerated,
@@ -27,7 +28,7 @@ export default function InterviewPage() {
     conversationHistory,
   } = useInterview(sessionId);
 
-  const { transcript, isListening, start, stop } = useSpeech();
+  const { transcript, isListening, start, stop, lastActivity } = useSpeech();
   const { speak, stopSpeaking, isSpeaking } = useTTS();
   const [submitting, setSubmitting] = useState(false);
   
@@ -81,12 +82,12 @@ export default function InterviewPage() {
     if (isListening && !isSpeaking && viewIndex === currentIndex) {
       clearTimeout(silenceTimerRef.current);
 
-      // 5 seconds of silence directly triggers handleNext
+      // Trigger transition only after a true pause in speech result activity
       silenceTimerRef.current = setTimeout(() => {
         if (transcript.trim().length > 15) {
           handleNext();
         }
-      }, 5000);
+      }, 6000); // Increased to 6 seconds for better thinking time
     } else {
       clearTimeout(silenceTimerRef.current);
     }
@@ -95,7 +96,7 @@ export default function InterviewPage() {
       clearTimeout(silenceTimerRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [transcript, isListening, isSpeaking, viewIndex, currentIndex]);
+  }, [lastActivity, isListening, isSpeaking, viewIndex, currentIndex]);
 
   const handleMicClick = async () => {
     if (viewIndex !== currentIndex) return; // Ignore if looking at past questions
@@ -168,30 +169,48 @@ export default function InterviewPage() {
       }
     } else {
       setHint(''); // Clear hint for next question
+      setSubmitting(true);
 
-      // Optional logic to dynamically insert a follow-up question
+      try {
+        const API = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+        
+        // 1. Fetch conversational reaction
+        const reactionRes = await fetch(`${API}/sessions/${sessionId}/reaction`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ question: questions[currentIndex], answer: currentAnswer }),
+        });
+        const reactionData = reactionRes.ok ? await reactionRes.json() : { reaction: '' };
+        const reactionText = reactionData.reaction ? (reactionData.reaction + " ") : "Okay. ";
+
+        // 2. Decide on Follow-up
+        let followupText = null;
         if (currentAnswer && currentAnswer.length > 20 && totalQuestions < 8 && Math.random() > 0.5) {
-        setSubmitting(true);
-        try {
-          const API = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-          const response = await fetch(`${API}/sessions/${sessionId}/followup`, {
+          const followupRes = await fetch(`${API}/sessions/${sessionId}/followup`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
             body: JSON.stringify({ question: questions[currentIndex], answer: currentAnswer }),
           });
-          const data = await response.json();
-          if (response.ok && data.followup) {
-            insertNextQuestion(data.followup); // inject the follow-up
+          const followupData = followupRes.ok ? await followupRes.json() : null;
+          if (followupData && followupData.followup) {
+            followupText = reactionText + followupData.followup;
           }
-        } catch (err) {
-          console.error(err);
-        } finally {
-          setSubmitting(false);
-          nextQuestion(currentAnswer); // advance index to the newly inserted follow up
         }
-      } else {
-        nextQuestion(currentAnswer); // standard progression
+
+        // 3. Apply the changes
+        if (followupText) {
+          insertNextQuestion(followupText);
+        } else {
+          // If no follow-up, prepend reaction to the adjacent existing question
+          modifyNextQuestion(reactionText);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setSubmitting(false);
+        nextQuestion(currentAnswer);
       }
     }
   };

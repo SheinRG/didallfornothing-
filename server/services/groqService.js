@@ -179,6 +179,46 @@ Return ONLY a JSON object with a "questions" array of 6 strings. The very first 
 }
 
 /**
+ * generateReaction(question, answer)
+ * Provides a very brief, conversational human-like reaction to an answer.
+ */
+export async function generateReaction(question, answer) {
+  if (!process.env.GROQ_API_KEY) {
+    return "Great point."; // Fast fallback
+  }
+
+  const prompt = `You are a friendly, professional interview coach.
+The candidate just answered the following question:
+Question: "${question}"
+Answer: "${answer}"
+
+Provide a VERY brief (1 sentence MAX, under 15 words) natural, conversational reaction. 
+Acknowledge what they said encouragingly before the next question.
+Examples: "That's a very diplomatic way to handle conflict.", "I like your focus on team building there.", "Good point about scalability."
+Do NOT ask another question. Do NOT give long feedback. Just a quick transitional reaction.`;
+
+  try {
+    const completion = await groq.chat.completions.create({
+      messages: [{ role: 'user', content: prompt }],
+      model: 'llama-3.1-8b-instant', // fastest model for quick responses
+      temperature: 0.7,
+      max_tokens: 30, // keep it super short
+    });
+
+    let content = completion.choices[0]?.message?.content?.trim() || 'I see, great point.';
+    
+    // Strip quotes if LLM added them
+    if (content.startsWith('"') && content.endsWith('"')) {
+      content = content.substring(1, content.length - 1);
+    }
+    return content;
+  } catch (error) {
+    console.error('Error in Groq Reaction:', error);
+    return "Interesting point."; // Fallback
+  }
+}
+
+/**
  * analyseAnswer(transcript)
  * Analyzes the full interview transcript and returns rich, actionable feedback.
  */

@@ -120,6 +120,28 @@ export const getFollowUp = async (req, res) => {
 };
 
 /**
+ * POST /api/sessions/:id/reaction
+ * Get a quick AI transitional reaction to the answer.
+ */
+export const getReaction = async (req, res) => {
+  try {
+    const { question, answer } = req.body;
+    
+    if (!question || !answer) {
+      return res.status(400).json({ message: 'Question and answer are required' });
+    }
+
+    const { generateReaction } = await import('../services/groqService.js');
+    const reaction = await generateReaction(question, answer);
+    
+    res.status(200).json({ reaction });
+  } catch (err) {
+    console.error('getReaction Error:', err);
+    res.status(500).json({ message: 'Failed to generate reaction' });
+  }
+};
+
+/**
  * DELETE /api/sessions/:id
  * Delete a session and its associated feedback.
  */

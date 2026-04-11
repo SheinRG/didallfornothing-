@@ -92,6 +92,16 @@ export default function useInterview(sessionId) {
     });
   }, [currentIndex]);
 
+  const modifyNextQuestion = useCallback((prefix) => {
+    setQuestions((prev) => {
+      const copy = [...prev];
+      if (copy[currentIndex + 1]) {
+        copy[currentIndex + 1] = prefix + ' ' + copy[currentIndex + 1];
+      }
+      return copy;
+    });
+  }, [currentIndex]);
+
   const reset = useCallback(() => {
     setCurrentIndex(0);
     setAnswers([]);
@@ -115,6 +125,7 @@ export default function useInterview(sessionId) {
     conversationHistory,
     nextQuestion,
     insertNextQuestion,
+    modifyNextQuestion,
     reset,
   };
 }
