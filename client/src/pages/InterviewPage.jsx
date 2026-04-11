@@ -77,26 +77,7 @@ export default function InterviewPage() {
     isSpeakingRef.current = isSpeaking;
   }, [isSpeaking, isListening, start, sessionLoading, viewIndex, currentIndex]);
 
-  // Handle auto-advance silence detection
-  useEffect(() => {
-    if (isListening && !isSpeaking && viewIndex === currentIndex) {
-      clearTimeout(silenceTimerRef.current);
-
-      // Trigger transition only after a true pause in speech result activity
-      silenceTimerRef.current = setTimeout(() => {
-        if (transcript.trim().length > 15) {
-          handleNext();
-        }
-      }, 6000); // Increased to 6 seconds for better thinking time
-    } else {
-      clearTimeout(silenceTimerRef.current);
-    }
-
-    return () => {
-      clearTimeout(silenceTimerRef.current);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lastActivity, isListening, isSpeaking, viewIndex, currentIndex]);
+  // User must manually click NEXT to advance.
 
   const handleMicClick = async () => {
     if (viewIndex !== currentIndex) return; // Ignore if looking at past questions
@@ -225,22 +206,22 @@ export default function InterviewPage() {
   }
 
   return (
-    <PageWrapper className="flex flex-col h-screen overflow-hidden !pt-0 !pb-0">
+    <PageWrapper className="flex flex-col min-h-screen lg:h-screen lg:overflow-hidden !pt-0 !pb-0">
       {/* ── Top bar ───────────────────────────────────── */}
-      <div className="flex items-center justify-between px-6 py-5 border-b border-[#222] bg-[#111]/90 backdrop-blur-md">
+      <div className="flex items-center justify-between px-4 sm:px-6 py-4 sm:py-5 border-b border-[#222] bg-[#111]/90 backdrop-blur-md sticky top-0 z-50">
         <div className="flex items-center gap-2 border border-[#333] px-3 py-1.5 rounded-full bg-[#1A1A1A]">
           <div className="w-2 h-2 rounded-full bg-[#E8563B] animate-pulse" />
-          <span className="text-[10px] font-bold tracking-[0.2em] text-[#aaa]">
-            QUESTION {currentIndex + 1} OF {totalQuestions}
+          <span className="text-[10px] sm:text-xs font-bold tracking-[0.2em] text-[#aaa]">
+            Q{currentIndex + 1} OF {totalQuestions}
           </span>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           {/* Speaking indicator */}
           {isSpeaking && (
             <motion.div
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="flex items-center gap-1.5 border border-[#2a3a2a] px-3 py-1.5 rounded-full bg-[#1a2a1a]"
+              className="flex items-center gap-1.5 border border-[#2a3a2a] px-3 py-1.5 rounded-full bg-[#1a2a1a] hidden sm:flex"
             >
               <div className="flex items-center gap-0.5">
                 <div className="w-1 h-3 bg-green-400 rounded-full animate-pulse" style={{ animationDelay: '0ms' }} />
@@ -253,33 +234,33 @@ export default function InterviewPage() {
             </motion.div>
           )}
           <div className="flex items-center gap-2 border border-[#333] px-3 py-1.5 rounded-full bg-[#1A1A1A]">
-            <span className={`text-[10px] font-bold tracking-[0.2em] ${
+            <span className={`text-[9px] sm:text-[10px] font-bold tracking-[0.1em] sm:tracking-[0.2em] ${
               isResumeTailored ? 'text-purple-400' : isAiGenerated ? 'text-green-400' : 'text-blue-400'
             }`}>
-              {isResumeTailored ? '📄 RESUME-TAILORED' : isAiGenerated ? '✨ AI GENERATED' : '🛠️ DEMO QUESTIONS'}
+              {isResumeTailored ? '📄 TAILORED' : isAiGenerated ? '✨ AI' : '🛠️ DEMO'}
             </span>
           </div>
         </div>
       </div>
 
       {/* ── Main content — two-panel layout ──────────── */}
-      <div className="flex-1 flex flex-col lg:flex-row gap-8 px-6 py-6 pb-4 max-w-7xl mx-auto w-full min-h-0">
+      <div className="flex-1 flex flex-col lg:flex-row gap-6 lg:gap-8 px-4 sm:px-6 py-6 pb-20 lg:pb-4 max-w-7xl mx-auto w-full min-h-0">
 
         {/* ── Left: Live Stage ──────────────────────── */}
-        <div className="flex-1 flex flex-col items-center justify-center gap-8 relative z-10 min-h-[40vh] lg:min-h-0">
+        <div className="flex-1 flex flex-col items-center justify-center gap-6 lg:gap-8 relative z-10 min-h-[50vh] lg:min-h-0 py-8 lg:py-0">
           <motion.div
             key={viewIndex}
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-center w-full px-6"
+            className="text-center w-full px-2 sm:px-6 max-w-3xl"
           >
             {viewIndex < currentIndex && (
               <div className="mb-4 inline-flex items-center gap-2 px-3 py-1 bg-[#E8563B]/20 border border-[#E8563B]/50 rounded-full">
-                <span className="text-[10px] font-bold tracking-[0.2em] text-[#E8563B] uppercase">Reviewing Previous Question</span>
+                <span className="text-[10px] font-bold tracking-[0.2em] text-[#E8563B] uppercase">Reviewing Previous</span>
               </div>
             )}
 
-            <p className="text-2xl sm:text-3xl font-extrabold text-white leading-tight tracking-tight px-4">
+            <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-white leading-relaxed tracking-tight px-2 sm:px-4">
               "{questions[viewIndex] || currentQuestion}"
             </p>
 
@@ -370,7 +351,7 @@ export default function InterviewPage() {
                 disabled={submitting}
                 className="min-w-[200px]"
               >
-                {submitting ? 'PROCESSING...' : currentIndex + 1 < totalQuestions ? 'SKIP TO NEXT' : 'SUBMIT SIMULATION'}
+                {submitting ? 'PROCESSING...' : currentIndex + 1 < totalQuestions ? 'NEXT' : 'SUBMIT SIMULATION'}
               </Button>
             ) : (
               <Button 
@@ -403,7 +384,7 @@ export default function InterviewPage() {
         </div>
 
         {/* ── Right: Conversation Transcript ─────────── */}
-        <div className="w-full lg:w-[420px] flex-1 lg:h-full flex flex-col bg-[#111]/80 backdrop-blur-xl rounded-3xl border border-[#222] overflow-hidden shadow-2xl relative min-h-0">
+        <div className="w-full lg:w-[420px] flex-1 lg:h-full flex flex-col bg-[#111]/80 backdrop-blur-xl rounded-3xl border border-[#222] overflow-hidden shadow-2xl relative min-h-[400px] lg:min-h-0">
           {/* Transcript header */}
           <div className="flex items-center justify-between px-5 py-4 border-b border-[#222]">
             <div className="flex items-center gap-2">
@@ -463,7 +444,7 @@ export default function InterviewPage() {
             </AnimatePresence>
 
             {/* Show live typing if user is recording */}
-            {isListening && transcript && (
+            {isListening && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -477,7 +458,7 @@ export default function InterviewPage() {
                     👤 YOU
                     <span className="text-[#E8563B] animate-pulse">● RECORDING</span>
                   </div>
-                  {transcript}
+                  {transcript ? transcript : <span className="opacity-50 italic">Listening...</span>}
                 </div>
               </motion.div>
             )}
