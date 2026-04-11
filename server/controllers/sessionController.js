@@ -23,7 +23,7 @@ export const getSessions = async (req, res) => {
  */
 export const createSession = async (req, res) => {
   try {
-    const { role, level, interviewType, difficulty, jobDescription } = req.body;
+    const { role, level, interviewType, difficulty, jobDescription, existingQuestions } = req.body;
 
     if (!role || !level || !interviewType || !difficulty) {
       return res.status(400).json({ message: 'All fields are required' });
@@ -33,15 +33,29 @@ export const createSession = async (req, res) => {
     const user = await User.findById(req.user.userId).select('resumeData');
     const resumeContext = user?.resumeData?.uploadedAt ? user.resumeData : null;
 
-    // Generate real or mock questions via Groq service
-    const { questions, isAiGenerated, isResumeTailored } = await generateQuestions(
-      role,
-      level,
-      interviewType,
-      resumeContext,
-      jobDescription,
-      difficulty
-    );
+    let questions = [];
+    let isAiGenerated = false;
+    let isResumeTailored = false;
+
+    if (existingQuestions && Array.isArray(existingQuestions) && existingQuestions.length > 0) {
+      // Retry mode: use the exact same questions from a previous session
+      questions = existingQuestions;
+      isAiGenerated = true; // Assuming retried questions were AI generated
+      isResumeTailored = !!resumeContext;
+    } else {
+      // Generate real or mock questions via Groq service
+      const generated = await generateQuestions(
+        role,
+        level,
+        interviewType,
+        resumeContext,
+        jobDescription,
+        difficulty
+      );
+      questions = generated.questions;
+      isAiGenerated = generated.isAiGenerated;
+      isResumeTailored = generated.isResumeTailored;
+    }
 
     const session = await Session.create({
       userId: req.user.userId,

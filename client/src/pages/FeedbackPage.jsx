@@ -164,6 +164,36 @@ export default function FeedbackPage() {
     URL.revokeObjectURL(url);
   };
 
+  const [retryLoading, setRetryLoading] = useState(false);
+
+  const handleRetry = async () => {
+    if (!session) return;
+    setRetryLoading(true);
+    try {
+      const response = await fetch(`${API}/sessions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          role: session.role,
+          level: session.level,
+          interviewType: session.interviewType,
+          difficulty: session.difficulty || 'medium',
+          jobDescription: session.jobDescription || '',
+          existingQuestions: session.questions, // PASS EXISTING QUESTIONS
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Failed to create retry session');
+      
+      navigate(`/interview`, { state: { sessionId: data.session._id } });
+    } catch (err) {
+      alert('Error starting retry: ' + err.message);
+    } finally {
+      setRetryLoading(false);
+    }
+  };
+
   /* ── Loading ───────────────────────────────── */
   if (loading) {
     return (
@@ -471,7 +501,14 @@ export default function FeedbackPage() {
         </div>
 
         {/* ── Actions ──────────────────────────────── */}
-        <div className="relative z-10 flex justify-center gap-6 mt-16">
+        <div className="relative z-10 flex justify-center gap-6 mt-16 flex-wrap">
+          <button
+            onClick={handleRetry}
+            disabled={retryLoading}
+            className={`px-10 py-4 bg-[#E8563B] text-white rounded-xl font-semibold text-sm tracking-widest uppercase hover:brightness-110 transition-all active:scale-95 flex items-center justify-center min-w-[240px] ${retryLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
+          >
+            {retryLoading ? 'PREPARING...' : 'RETRY SAME INTERVIEW'}
+          </button>
           <Link
             to="/onboarding"
             className="px-10 py-4 bg-primary-container text-white rounded-xl font-semibold text-sm tracking-widest uppercase hover:brightness-110 transition-all active:scale-95"
