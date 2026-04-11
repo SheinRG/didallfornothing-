@@ -20,6 +20,7 @@ import mongoose from 'mongoose';
 dotenv.config({ path: '../.env' });
 
 const app = express();
+app.set('trust proxy', 1); // Trust Render's proxy for secure cookies
 const PORT = process.env.PORT || 5000;
 const MONGODB_URI = process.env.MONGODB_URI;
 
