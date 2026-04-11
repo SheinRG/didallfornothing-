@@ -11,7 +11,7 @@ export default function InterviewPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const sessionId = location.state?.sessionId;
-  const transcriptEndRef = useRef(null);
+  const transcriptContainerRef = useRef(null);
 
   const {
     questions,
@@ -62,28 +62,24 @@ export default function InterviewPage() {
 
   // Scroll transcript panel to bottom whenever conversation updates
   useEffect(() => {
-    transcriptEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [conversationHistory, transcript]);
-
-  // Auto-start Mic when AI finishes speaking the active question
-  useEffect(() => {
-    if (isSpeakingRef.current && !isSpeaking && !sessionLoading) {
-      if (viewIndex === currentIndex) {
-        setTimeout(() => {
-          if (!isListening) start();
-        }, 500);
-      }
+    if (transcriptContainerRef.current) {
+      transcriptContainerRef.current.scrollTo({
+        top: transcriptContainerRef.current.scrollHeight,
+        behavior: 'smooth'
+      });
     }
-    isSpeakingRef.current = isSpeaking;
-  }, [isSpeaking, isListening, start, sessionLoading, viewIndex, currentIndex]);
+  }, [conversationHistory, transcript]);
 
   // User must manually click NEXT to advance.
 
   const handleMicClick = async () => {
     if (viewIndex !== currentIndex) return; // Ignore if looking at past questions
     if (isSpeaking) stopSpeaking(); // Stop AI voice if it's still talking
-    if (isListening) await stop();
-    else start();
+    if (isListening) {
+      handleNext(); // Single action submit: Stops mic and moves to next
+    } else {
+      start();
+    }
   };
 
   const handleEndTest = async () => {
@@ -247,7 +243,8 @@ export default function InterviewPage() {
       <div className="flex-1 flex flex-col lg:flex-row gap-6 lg:gap-8 px-4 sm:px-6 py-6 pb-20 lg:pb-4 max-w-7xl mx-auto w-full min-h-0">
 
         {/* ── Left: Live Stage ──────────────────────── */}
-        <div className="flex-1 flex flex-col items-center justify-center gap-6 lg:gap-8 relative z-10 min-h-[50vh] lg:min-h-0 py-8 lg:py-0">
+        <div className="flex-1 flex flex-col relative z-10 min-h-[50vh] lg:min-h-0 py-4 lg:py-0 overflow-y-auto overflow-x-hidden scrollbar-hide">
+          <div className="w-full flex-1 flex flex-col items-center justify-center my-auto min-h-max gap-6 lg:gap-8 py-4">
           <motion.div
             key={viewIndex}
             initial={{ opacity: 0, y: 16 }}
@@ -381,6 +378,7 @@ export default function InterviewPage() {
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
           </div>
+          </div>
         </div>
 
         {/* ── Right: Conversation Transcript ─────────── */}
@@ -400,6 +398,7 @@ export default function InterviewPage() {
 
           {/* Transcript messages */}
           <div 
+            ref={transcriptContainerRef}
             className="flex-1 overflow-y-auto px-5 py-6 space-y-5 scrollbar-thin pb-8"
             style={{ 
               maskImage: 'linear-gradient(to bottom, transparent 0%, black 5%, black 100%)',
@@ -463,7 +462,6 @@ export default function InterviewPage() {
               </motion.div>
             )}
 
-            <div ref={transcriptEndRef} />
           </div>
         </div>
       </div>
