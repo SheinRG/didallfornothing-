@@ -59,7 +59,7 @@ export default function useInterview(sessionId) {
   const totalQuestions = questions.length;
 
   const nextQuestion = useCallback(
-    (answer = '') => {
+    (answer = '', nextQuestionText = null) => {
       // Push the user's answer into conversation history
       setConversationHistory((prev) => [
         ...prev,
@@ -74,10 +74,12 @@ export default function useInterview(sessionId) {
         const nextIdx = currentIndex + 1;
         setCurrentIndex(nextIdx);
 
-        // Push the next AI question into conversation history
+        // Push the next AI question into conversation history.
+        // Use the explicitly passed text if available (handles async question mutations),
+        // otherwise read from the current questions array.
         setConversationHistory((prev) => [
           ...prev,
-          { role: 'coach', text: questions[nextIdx] },
+          { role: 'coach', text: nextQuestionText || questions[nextIdx] },
         ]);
       }
     },

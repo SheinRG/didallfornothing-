@@ -121,12 +121,17 @@ export default function InterviewPage() {
   };
 
   const handleNext = async () => {
+    // Capture whether the mic was actually active BEFORE stopping it
+    const wasListening = isListening;
     const finalTranscript = await stop(); 
     stopSpeaking();
     clearTimeout(silenceTimerRef.current);
 
     const isLast = currentIndex + 1 >= totalQuestions;
-    const currentAnswer = finalTranscript || transcript;
+    
+    // Only use the transcript if the user actually recorded audio for this question.
+    // If they skipped (never started the mic), treat as empty string.
+    const currentAnswer = wasListening ? (finalTranscript || transcript || '') : '';
 
     let currentSnapshot = null;
     if (webcamRef.current && webcamRef.current.readyState >= 2) {
@@ -172,6 +177,9 @@ export default function InterviewPage() {
       setHint(''); // Clear hint for next question
       setSubmitting(true);
 
+      // Track the actual next question text to pass to conversation history
+      let actualNextQuestionText = null;
+
       try {
         const API = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
         
@@ -200,18 +208,22 @@ export default function InterviewPage() {
           }
         }
 
-        // 3. Apply the changes
+        // 3. Apply the changes and track the actual question text
         if (followupText) {
           insertNextQuestion(followupText);
+          actualNextQuestionText = followupText;
         } else {
           // If no follow-up, prepend reaction to the adjacent existing question
           modifyNextQuestion(reactionText);
+          actualNextQuestionText = reactionText + ' ' + (questions[currentIndex + 1] || '');
         }
       } catch (err) {
         console.error(err);
       } finally {
         setSubmitting(false);
-        nextQuestion(currentAnswer);
+        // Pass the explicit next question text so the conversation log matches
+        // what's actually displayed, bypassing the stale questions closure
+        nextQuestion(currentAnswer, actualNextQuestionText);
       }
     }
   };

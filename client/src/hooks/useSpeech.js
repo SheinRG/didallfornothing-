@@ -135,7 +135,10 @@ export default function useSpeech() {
         };
         mediaRecorderRef.current.stop();
       } else {
-        resolve(transcript);
+        // No recording was active — user skipped this question.
+        // Clear transcript and resolve empty to avoid leaking previous answers.
+        setTranscript('');
+        resolve('');
       }
     });
   }, [transcript]);

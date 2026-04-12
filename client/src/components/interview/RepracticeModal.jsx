@@ -25,7 +25,7 @@ export default function RepracticeModal({ isOpen, onClose, question, session }) 
     if (isListening) {
       finalTranscript = await stop();
     }
-    
+
     if (!finalTranscript) return;
     setLoading(true);
     setAnalysis(null);
@@ -81,30 +81,29 @@ export default function RepracticeModal({ isOpen, onClose, question, session }) 
             <div className="space-y-4">
               <p className="text-[11px] font-bold tracking-[0.2em] text-[#888] uppercase">Your New Answer</p>
               <div className="bg-[#1a1a1a] rounded-2xl border border-[#333] p-5 min-h-[200px] flex flex-col">
-                <div className="flex-1 bg-black/30 rounded-xl p-4 text-sm text-zinc-300 font-mono leading-relaxed overflow-y-auto mb-4 border border-white/5">
-                  {transcript || <span className="text-zinc-600 italic">Hit record and start speaking...</span>}
+                <div className="flex-1 bg-black/10 rounded-xl p-4 text-sm text-black font-mono leading-relaxed overflow-y-auto mb-4 border border-black/5">
+                  {transcript || <span className="text-black italic">Hit record and start speaking...</span>}
                 </div>
-                
+
                 <div className="flex items-center gap-4">
                   <button
                     onClick={isListening ? stop : start}
-                    className={`flex-1 py-4 flex items-center justify-center gap-2 rounded-xl font-bold text-sm tracking-widest uppercase transition-all ${
-                      isListening 
-                        ? 'bg-red-500/20 text-red-500 border border-red-500/50 animate-pulse'
-                        : 'bg-[#E8563B] text-white hover:brightness-110 active:scale-95'
-                    }`}
+                    className={`flex-1 py-4 flex items-center justify-center gap-2 rounded-xl font-bold text-sm tracking-widest uppercase transition-all ${isListening
+                      ? 'bg-red-500/20 text-red-500 border border-red-500/50 animate-pulse'
+                      : 'bg-[#E8563B] text-white hover:brightness-110 active:scale-95'
+                      }`}
                   >
                     <span className="material-symbols-outlined text-[20px]">{isListening ? 'stop_circle' : 'mic'}</span>
                     {isListening ? 'STOP RECORDING' : 'RECORD ANSWER'}
                   </button>
                   {transcript && !isListening && (
-                     <button
-                        onClick={handleSubmit}
-                        disabled={loading}
-                        className="w-16 h-14 bg-white/10 text-white rounded-xl flex items-center justify-center hover:bg-white/20 transition-all border border-white/10"
-                     >
-                       {loading ? <span className="material-symbols-outlined animate-spin">sync</span> : <span className="material-symbols-outlined">send</span>}
-                     </button>
+                    <button
+                      onClick={handleSubmit}
+                      disabled={loading}
+                      className="w-16 h-14 bg-white/10 text-white rounded-xl flex items-center justify-center hover:bg-white/20 transition-all border border-white/10"
+                    >
+                      {loading ? <span className="material-symbols-outlined animate-spin">sync</span> : <span className="material-symbols-outlined">send</span>}
+                    </button>
                   )}
                 </div>
               </div>
@@ -141,14 +140,14 @@ export default function RepracticeModal({ isOpen, onClose, question, session }) 
                     </p>
 
                     <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-black/30 p-3 rounded-xl border border-white/5">
-                          <span className="text-[10px] uppercase tracking-widest text-[#888] font-bold block mb-1">Structure</span>
-                          <span className="text-white font-semibold">{analysis.structure}/10</span>
-                        </div>
-                        <div className="bg-black/30 p-3 rounded-xl border border-white/5">
-                          <span className="text-[10px] uppercase tracking-widest text-[#888] font-bold block mb-1">Clarity</span>
-                          <span className="text-white font-semibold">{analysis.clarity}/10</span>
-                        </div>
+                      <div className="bg-black/30 p-3 rounded-xl border border-white/5">
+                        <span className="text-[10px] uppercase tracking-widest text-[#888] font-bold block mb-1">Structure</span>
+                        <span className="text-white font-semibold">{analysis.structure}/10</span>
+                      </div>
+                      <div className="bg-black/30 p-3 rounded-xl border border-white/5">
+                        <span className="text-[10px] uppercase tracking-widest text-[#888] font-bold block mb-1">Clarity</span>
+                        <span className="text-white font-semibold">{analysis.clarity}/10</span>
+                      </div>
                     </div>
                   </motion.div>
                 )}

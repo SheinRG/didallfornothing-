@@ -8,10 +8,10 @@ import RepracticeModal from '../components/interview/RepracticeModal';
 const API = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const metricMeta = [
-  { key: 'clarity',    label: 'Clarity',    icon: 'settings_voice', desc: 'Precision of technical terminology and enunciation.' },
-  { key: 'relevance',  label: 'Relevance',  icon: 'target',         desc: 'Alignment with organizational objectives.' },
-  { key: 'structure',  label: 'Structure',  icon: 'account_tree',   desc: 'Logical flow of narrative and problem solving.' },
-  { key: 'confidence', label: 'Confidence', icon: 'electric_bolt',  desc: 'Stability in vocal tone and presence.' },
+  { key: 'clarity', label: 'Clarity', icon: 'settings_voice', desc: 'Precision of technical terminology and enunciation.' },
+  { key: 'relevance', label: 'Relevance', icon: 'target', desc: 'Alignment with organizational objectives.' },
+  { key: 'structure', label: 'Structure', icon: 'account_tree', desc: 'Logical flow of narrative and problem solving.' },
+  { key: 'confidence', label: 'Confidence', icon: 'electric_bolt', desc: 'Stability in vocal tone and presence.' },
 ];
 
 /* ── colour helper: picks accent based on value ─── */
@@ -97,7 +97,7 @@ export default function FeedbackPage() {
   const [modelOpen, setModelOpen] = useState(false);
   const [showFillerWords, setShowFillerWords] = useState(false);
   const [isThemeLight, setIsThemeLight] = useState(false);
-  
+
   const [activePracticeQ, setActivePracticeQ] = useState(null);
   const [reviewOpen, setReviewOpen] = useState(false);
 
@@ -149,20 +149,20 @@ export default function FeedbackPage() {
   const handleDownloadPDF = () => {
     if (!feedbackData || !session) return;
     const doc = new jsPDF();
-    
+
     // Colors & Branding
     const brandColor = [232, 86, 59];
-    
+
     doc.setFontSize(22);
     doc.setTextColor(brandColor[0], brandColor[1], brandColor[2]);
     doc.text("ORION AI - Interview Report", 14, 22);
-    
+
     doc.setTextColor(60, 60, 60);
     doc.setFontSize(11);
     doc.text(`Role: ${session.role.toUpperCase()}`, 14, 32);
     doc.text(`Level: ${session.level.toUpperCase()}`, 14, 38);
     doc.text(`Overall Score: ${Math.round(feedbackData.overallScore)}/10`, 14, 44);
-    
+
     doc.setFontSize(14);
     doc.setTextColor(0, 0, 0);
     doc.text("Executive Summary", 14, 58);
@@ -175,10 +175,10 @@ export default function FeedbackPage() {
     doc.setFontSize(14);
     doc.setTextColor(0, 0, 0);
     doc.text("Question Breakdown", 14, startY);
-    
+
     const tableData = session.questions.map((q, i) => [
-      `Q${i+1}`, 
-      q, 
+      `Q${i + 1}`,
+      q,
       session.answers[i] || 'No response recorded'
     ]);
 
@@ -220,7 +220,7 @@ export default function FeedbackPage() {
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || 'Failed to create retry session');
-      
+
       navigate(`/interview`, { state: { sessionId: data.session._id } });
     } catch (err) {
       alert('Error starting retry: ' + err.message);
@@ -337,7 +337,7 @@ export default function FeedbackPage() {
                 <span className="material-symbols-outlined text-sm">picture_as_pdf</span> PDF
               </button>
             </motion.div>
-            
+
             <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Link
                 to="/onboarding"
@@ -377,7 +377,7 @@ export default function FeedbackPage() {
                   {/* Filler Words Badge */}
                   {fillerWordCount > 0 && (
                     <div className="relative inline-block">
-                      <button 
+                      <button
                         onClick={() => setShowFillerWords(!showFillerWords)}
                         className="inline-flex items-center gap-4 px-6 py-4 bg-primary-container/10 border border-primary-container/20 rounded-full shadow-[0_0_30px_rgba(255,85,67,0.1)] hover:bg-primary-container/20 transition-all cursor-pointer"
                       >
@@ -389,7 +389,7 @@ export default function FeedbackPage() {
                           {showFillerWords ? 'expand_less' : 'expand_more'}
                         </span>
                       </button>
-                      
+
                       <AnimatePresence>
                         {showFillerWords && (
                           <motion.div
@@ -477,8 +477,8 @@ export default function FeedbackPage() {
                       {scores && scores.relevance >= 7
                         ? 'Strong alignment with role requirements and excellent use of domain terminology throughout the dialogue.'
                         : scores && scores.confidence >= 7
-                        ? 'Confident vocal tone and steady delivery. Your presence during responses is a strong suit.'
-                        : 'Keep building on your foundational knowledge. Consistent practice will strengthen your interview performance.'}
+                          ? 'Confident vocal tone and steady delivery. Your presence during responses is a strong suit.'
+                          : 'Keep building on your foundational knowledge. Consistent practice will strengthen your interview performance.'}
                     </p>
                   </div>
                 </div>
@@ -580,8 +580,8 @@ export default function FeedbackPage() {
                                 <h4 className="text-white font-semibold text-lg leading-snug">{q}</h4>
                               </div>
                               <div className="bg-black/30 p-4 rounded-xl border border-white/5">
-                                <p className="text-zinc-400 font-mono text-sm leading-relaxed whitespace-pre-wrap">
-                                  {session.answers[idx] || <span className="italic text-zinc-600">No response recorded.</span>}
+                                <p className="text-black font-mono text-sm leading-relaxed whitespace-pre-wrap">
+                                  {session.answers[idx] || <span className="italic text-black/60">No response recorded.</span>}
                                 </p>
                               </div>
                             </div>
@@ -615,7 +615,7 @@ export default function FeedbackPage() {
               {retryLoading ? 'PREPARING...' : 'RETRY SAME INTERVIEW'}
             </button>
           </motion.div>
-          
+
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Link
               to="/onboarding"
@@ -624,7 +624,7 @@ export default function FeedbackPage() {
               Start New Interview
             </Link>
           </motion.div>
-          
+
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Link
               to="/dashboard"
@@ -654,7 +654,7 @@ export default function FeedbackPage() {
       </footer>
 
       {/* Re-practice Modal Overlay */}
-      <RepracticeModal 
+      <RepracticeModal
         isOpen={!!activePracticeQ}
         onClose={() => setActivePracticeQ(null)}
         question={activePracticeQ}
