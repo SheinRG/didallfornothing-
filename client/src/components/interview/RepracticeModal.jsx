@@ -1,13 +1,21 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import useSpeech from '../../hooks/useSpeech';
 
 const API = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 export default function RepracticeModal({ isOpen, onClose, question, session }) {
-  const { transcript, isListening, start, stop } = useSpeech();
+  const { transcript, isListening, start, stop, reset } = useSpeech();
   const [loading, setLoading] = useState(false);
   const [analysis, setAnalysis] = useState(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      setLoading(false);
+      setAnalysis(null);
+      reset();
+    }
+  }, [isOpen, question, reset]);
 
   if (!isOpen) return null;
 

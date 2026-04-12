@@ -140,7 +140,11 @@ export default function useSpeech() {
     });
   }, [transcript]);
 
-  return { transcript, isListening, start, stop, lastActivity: lastActivityRef.current };
+  const reset = useCallback(() => {
+    setTranscript('');
+  }, []);
+
+  return { transcript, isListening, start, stop, reset, lastActivity: lastActivityRef.current };
 }
 
 // Ready for: live mic animation and waving visualiser
