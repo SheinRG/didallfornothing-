@@ -4,7 +4,7 @@ import useSpeech from '../../hooks/useSpeech';
 
 const API = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-export default function RepracticeModal({ isOpen, onClose, question, session }) {
+export default function RepracticeModal({ isOpen, onClose, question, session, isThemeLight }) {
   const { transcript, isListening, start, stop, reset } = useSpeech();
   const [loading, setLoading] = useState(false);
   const [analysis, setAnalysis] = useState(null);
@@ -81,8 +81,8 @@ export default function RepracticeModal({ isOpen, onClose, question, session }) 
             <div className="space-y-4">
               <p className="text-[11px] font-bold tracking-[0.2em] text-[#888] uppercase">Your New Answer</p>
               <div className="bg-[#1a1a1a] rounded-2xl border border-[#333] p-5 min-h-[200px] flex flex-col">
-                <div className="flex-1 bg-black/10 rounded-xl p-4 text-sm text-black font-mono leading-relaxed overflow-y-auto mb-4 border border-black/5">
-                  {transcript || <span className="text-black italic">Hit record and start speaking...</span>}
+                <div className={`flex-1 ${isThemeLight ? 'bg-black/10' : 'bg-black/30'} rounded-xl p-4 text-sm ${isThemeLight ? 'text-black' : 'text-white'} font-mono leading-relaxed overflow-y-auto mb-4 border border-black/5`}>
+                  {transcript || <span className={`${isThemeLight ? 'text-black/60' : 'text-white/60'} italic`}>Hit record and start speaking...</span>}
                 </div>
 
                 <div className="flex items-center gap-4">

@@ -580,8 +580,8 @@ export default function FeedbackPage() {
                                 <h4 className="text-white font-semibold text-lg leading-snug">{q}</h4>
                               </div>
                               <div className="bg-black/30 p-4 rounded-xl border border-white/5">
-                                <p className="text-black font-mono text-sm leading-relaxed whitespace-pre-wrap">
-                                  {session.answers[idx] || <span className="italic text-black/60">No response recorded.</span>}
+                                <p className={`${isThemeLight ? 'text-black' : 'text-white'} font-mono text-sm leading-relaxed whitespace-pre-wrap`}>
+                                  {session.answers[idx] || <span className={`italic ${isThemeLight ? 'text-black/60' : 'text-white/60'}`}>No response recorded.</span>}
                                 </p>
                               </div>
                             </div>
@@ -654,11 +654,12 @@ export default function FeedbackPage() {
       </footer>
 
       {/* Re-practice Modal Overlay */}
-      <RepracticeModal
+      <RepracticeModal 
         isOpen={!!activePracticeQ}
         onClose={() => setActivePracticeQ(null)}
         question={activePracticeQ}
         session={session}
+        isThemeLight={isThemeLight}
       />
     </div>
   );
