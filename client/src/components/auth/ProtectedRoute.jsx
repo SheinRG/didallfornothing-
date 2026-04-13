@@ -1,30 +1,22 @@
-import { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+import useAuth from '../../hooks/useAuth';
 
 export default function ProtectedRoute({ children }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(null);
+  const { user, loading } = useAuth();
 
-  useEffect(() => {
-    const verifyUser = async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/auth/me`, { credentials: 'include' });
-        if (response.ok) {
-          setIsAuthenticated(true);
-        } else {
-          setIsAuthenticated(false);
-        }
-      } catch (err) {
-        setIsAuthenticated(false);
-      }
-    };
-    verifyUser();
-  }, []);
-
-  if (isAuthenticated === null) {
-    return <div className="min-h-screen bg-[#111] flex items-center justify-center text-white text-sm tracking-widest font-bold uppercase">Verifying Session...</div>;
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#111] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-t-2 border-r-2 border-[#E8563B] rounded-full animate-spin"></div>
+          <div className="text-white text-xs tracking-widest font-bold uppercase opacity-50">
+            Verifying Session...
+          </div>
+        </div>
+      </div>
+    );
   }
 
-  return isAuthenticated ? children : <Navigate to="/login" replace />;
+  return user ? children : <Navigate to="/login" replace />;
 }
+
