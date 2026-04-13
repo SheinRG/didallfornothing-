@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import RepracticeModal from '../components/interview/RepracticeModal';
+import { authFetch } from '../utils/authFetch';
 
 const API = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -128,8 +129,8 @@ export default function FeedbackPage() {
     const fetchAll = async () => {
       try {
         const [fbRes, sessRes] = await Promise.all([
-          fetch(`${API}/feedback/${sessionId}`, { credentials: 'include' }),
-          fetch(`${API}/sessions/${sessionId}`, { credentials: 'include' }),
+          authFetch(`${API}/feedback/${sessionId}`),
+          authFetch(`${API}/sessions/${sessionId}`),
         ]);
         const fbData = await fbRes.json();
         if (fbRes.ok) setFeedbackData(fbData.feedback);
@@ -205,10 +206,9 @@ export default function FeedbackPage() {
     if (!session) return;
     setRetryLoading(true);
     try {
-      const response = await fetch(`${API}/sessions`, {
+      const response = await authFetch(`${API}/sessions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({
           role: session.role,
           level: session.level,

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import useSpeech from '../../hooks/useSpeech';
+import { authFetch } from '../../utils/authFetch';
 
 const API = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -30,10 +31,9 @@ export default function RepracticeModal({ isOpen, onClose, question, session, is
     setLoading(true);
     setAnalysis(null);
     try {
-      const res = await fetch(`${API}/feedback/single`, {
+      const res = await authFetch(`${API}/feedback/single`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({ question, answer: finalTranscript }),
       });
       const data = await res.json();

@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import PageWrapper from '../components/ui/PageWrapper';
 import Button from '../components/ui/Button';
+import { authFetch } from '../utils/authFetch';
 
 const steps = [
   {
@@ -85,10 +86,9 @@ export default function OnboardingPage() {
     setLoading(true);
     try {
       const API = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-      const response = await fetch(`${API}/sessions`, {
+      const response = await authFetch(`${API}/sessions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({ ...finalSelections, personality }),
       });
 

@@ -7,6 +7,7 @@ import useInterview from '../hooks/useInterview';
 import useSpeech from '../hooks/useSpeech';
 import useTTS from '../hooks/useTTS';
 import DraggableCamera from '../components/interview/DraggableCamera';
+import { authFetch } from '../utils/authFetch';
 
 export default function InterviewPage() {
   const location = useLocation();
@@ -103,10 +104,9 @@ export default function InterviewPage() {
     setHintLoading(true);
     try {
       const API = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-      const response = await fetch(`${API}/sessions/${sessionId}/hint`, {
+      const response = await authFetch(`${API}/sessions/${sessionId}/hint`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({ question: questions[viewIndex] }),
       });
       const data = await response.json();
@@ -159,10 +159,9 @@ export default function InterviewPage() {
       try {
         const fullAnswers = [...answers, currentAnswer];
         const API = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-        const response = await fetch(`${API}/feedback`, {
+        const response = await authFetch(`${API}/feedback`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
           body: JSON.stringify({ sessionId, answers: fullAnswers, questions, snapshots: updatedSnapshots }),
         });
 
@@ -184,10 +183,9 @@ export default function InterviewPage() {
         const API = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
         
         // 1. Fetch conversational reaction
-        const reactionRes = await fetch(`${API}/sessions/${sessionId}/reaction`, {
+        const reactionRes = await authFetch(`${API}/sessions/${sessionId}/reaction`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
           body: JSON.stringify({ question: questions[currentIndex], answer: currentAnswer }),
         });
         const reactionData = reactionRes.ok ? await reactionRes.json() : { reaction: '' };
@@ -196,10 +194,9 @@ export default function InterviewPage() {
         // 2. Decide on Follow-up
         let followupText = null;
         if (currentAnswer && currentAnswer.length > 20 && totalQuestions < 8 && Math.random() > 0.5) {
-          const followupRes = await fetch(`${API}/sessions/${sessionId}/followup`, {
+          const followupRes = await authFetch(`${API}/sessions/${sessionId}/followup`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
             body: JSON.stringify({ question: questions[currentIndex], answer: currentAnswer }),
           });
           const followupData = followupRes.ok ? await followupRes.json() : null;

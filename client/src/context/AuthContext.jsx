@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { authFetch, setToken, removeToken, getToken } from '../utils/authFetch';
 
 export const AuthContext = createContext();
 
@@ -10,17 +11,25 @@ export function AuthProvider({ children }) {
   const [error, setError] = useState(null);
 
   const verifySession = useCallback(async () => {
+    const token = getToken();
+    if (!token) {
+      setLoading(false);
+      return;
+    }
+
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/me`, { credentials: 'include' });
+      const response = await authFetch(`${API_BASE_URL}/auth/me`);
       const data = await response.json();
       if (response.ok) {
         setUser(data.user);
       } else {
         setUser(null);
+        removeToken();
       }
     } catch (err) {
       console.error('Session verification failed:', err);
       setUser(null);
+      removeToken();
     } finally {
       setLoading(false);
     }
@@ -37,11 +46,33 @@ export function AuthProvider({ children }) {
       const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({ email, password }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || 'Login failed');
+      setToken(data.token);
+      setUser(data.user);
+      return data.user;
+    } catch (err) {
+      setError(err.message);
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const register = async (name, email, password) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || 'Registration failed');
+      setToken(data.token);
       setUser(data.user);
       return data.user;
     } catch (err) {
@@ -59,11 +90,11 @@ export function AuthProvider({ children }) {
       const response = await fetch(`${API_BASE_URL}/auth/google`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({ token }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || 'Google Login failed');
+      setToken(data.token);
       setUser(data.user);
       return data.user;
     } catch (err) {
@@ -76,13 +107,12 @@ export function AuthProvider({ children }) {
 
   const logout = async () => {
     try {
-      await fetch(`${API_BASE_URL}/auth/logout`, {
-        method: 'POST',
-        credentials: 'include',
-      });
-      setUser(null);
+      await authFetch(`${API_BASE_URL}/auth/logout`, { method: 'POST' });
     } catch (err) {
       console.error('Logout error:', err);
+    } finally {
+      removeToken();
+      setUser(null);
     }
   };
 
@@ -91,27 +121,7 @@ export function AuthProvider({ children }) {
     loading,
     error,
     login,
-    register: async (name, email, password) => {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await fetch(`${API_BASE_URL}/auth/register`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({ name, email, password }),
-        });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.message || 'Registration failed');
-        setUser(data.user);
-        return data.user;
-      } catch (err) {
-        setError(err.message);
-        return null;
-      } finally {
-        setLoading(false);
-      }
-    },
+    register,
     loginWithGoogle,
     logout,
     isAuthenticated: !!user,

@@ -50,6 +50,7 @@ export const register = async (req, res) => {
     res.cookie('token', token, COOKIE_OPTIONS);
     res.status(201).json({
       message: 'User registered successfully',
+      token,
       user: { id: user._id, name: user.name, email: user.email },
     });
   } catch (err) {
@@ -85,6 +86,7 @@ export const login = async (req, res) => {
     res.cookie('token', token, COOKIE_OPTIONS);
     res.status(200).json({
       message: 'Logged in successfully',
+      token,
       user: { id: user._id, name: user.name, email: user.email },
     });
   } catch (err) {
@@ -132,6 +134,7 @@ export const googleLogin = async (req, res) => {
     res.cookie('token', jwtToken, COOKIE_OPTIONS);
     res.status(200).json({
       message: 'Logged in with Google successfully',
+      token: jwtToken,
       user: { id: user._id, name: user.name, email: user.email, targetRoles: user.targetRoles || [] },
     });
   } catch (err) {
@@ -151,11 +154,20 @@ export const logout = (_req, res) => {
 
 /**
  * GET /api/auth/me
- * Return the current user from the JWT cookie.
+ * Return the current user from the JWT (Bearer header or cookie fallback).
  */
 export const me = async (req, res) => {
   try {
-    const token = req.cookies?.token;
+    let token = null;
+
+    // Primary: Bearer header
+    const authHeader = req.headers['authorization'];
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.split(' ')[1];
+    }
+    // Fallback: cookie
+    if (!token) token = req.cookies?.token;
+
     if (!token) return res.status(401).json({ message: 'Not authenticated' });
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'dev-secret');
@@ -174,7 +186,12 @@ export const me = async (req, res) => {
  */
 export const updateProfile = async (req, res) => {
   try {
-    const token = req.cookies?.token;
+    let token = null;
+    const authHeader = req.headers['authorization'];
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.split(' ')[1];
+    }
+    if (!token) token = req.cookies?.token;
     if (!token) return res.status(401).json({ message: 'Not authenticated' });
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET || 'dev-secret');

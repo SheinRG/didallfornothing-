@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import PageWrapper from '../components/ui/PageWrapper';
 import Button from '../components/ui/Button';
+import { authFetch } from '../utils/authFetch';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -20,9 +21,7 @@ export default function ResumePage() {
   useEffect(() => {
     const checkResume = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/resume`, {
-          credentials: 'include',
-        });
+        const response = await authFetch(`${API_BASE_URL}/resume`);
         const data = await response.json();
         if (data.hasResume) {
           setResumeData(data.resumeData);
@@ -83,9 +82,8 @@ export default function ResumePage() {
 
       setUploadProgress('Extracting text from resume...');
 
-      const response = await fetch(`${API_BASE_URL}/resume/upload`, {
+      const response = await authFetch(`${API_BASE_URL}/resume/upload`, {
         method: 'POST',
-        credentials: 'include',
         body: formData,
       });
 
@@ -110,9 +108,8 @@ export default function ResumePage() {
 
   const handleClearResume = async () => {
     try {
-      await fetch(`${API_BASE_URL}/resume`, {
+      await authFetch(`${API_BASE_URL}/resume`, {
         method: 'DELETE',
-        credentials: 'include',
       });
       setResumeData(null);
       setFile(null);

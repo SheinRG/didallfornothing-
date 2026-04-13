@@ -3,6 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Cover } from '../components/ui/cover';
 
+import { authFetch, removeToken } from '../utils/authFetch';
+
 const API = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 const roleLabels = { swe: 'SWE', pm: 'PM', design: 'Design', marketing: 'Marketing' };
@@ -105,7 +107,8 @@ export default function DashboardPage() {
 
   const handleLogout = async () => {
     try {
-      await fetch(`${API}/auth/logout`, { method: 'POST', credentials: 'include' });
+      await authFetch(`${API}/auth/logout`, { method: 'POST' });
+      removeToken();
       navigate('/');
     } catch (err) {
       console.error('Logout error:', err);
@@ -115,9 +118,8 @@ export default function DashboardPage() {
   const handleUpdateSettings = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch(`${API}/auth/update`, {
+      const res = await authFetch(`${API}/auth/update`, {
         method: 'PUT',
-        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       });
@@ -143,14 +145,13 @@ export default function DashboardPage() {
     if (!window.confirm('Are you sure you want to delete this session? This will also delete the associated feedback.')) return;
     
     try {
-      const res = await fetch(`${API}/sessions/${sessionId}`, { 
-        method: 'DELETE', 
-        credentials: 'include' 
+      const res = await authFetch(`${API}/sessions/${sessionId}`, { 
+        method: 'DELETE'
       });
       if (res.ok) {
         setSessions(sessions.filter(s => s._id !== sessionId));
         // Also refresh stats to be safe
-        const statsRes = await fetch(`${API}/feedback/stats`, { credentials: 'include' });
+        const statsRes = await authFetch(`${API}/feedback/stats`);
         const statsData = await statsRes.json();
         if (statsRes.ok) setStats(statsData);
       } else {
@@ -164,7 +165,7 @@ export default function DashboardPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const userRes = await fetch(`${API}/auth/me`, { credentials: 'include' });
+        const userRes = await authFetch(`${API}/auth/me`);
         if (!userRes.ok) {
           navigate('/login');
           return;
@@ -176,13 +177,13 @@ export default function DashboardPage() {
           setFormData({ ...formData, email: data.user.email, targetRoles: data.user.targetRoles || [] });
         }
 
-        const sessRes = await fetch(`${API}/sessions`, { credentials: 'include' });
+        const sessRes = await authFetch(`${API}/sessions`);
         const sessData = await sessRes.json();
         if (sessRes.ok) {
           setSessions(sessData.sessions || []);
         }
 
-        const statsRes = await fetch(`${API}/feedback/stats`, { credentials: 'include' });
+        const statsRes = await authFetch(`${API}/feedback/stats`);
         const statsData = await statsRes.json();
         if (statsRes.ok) {
           setStats(statsData);

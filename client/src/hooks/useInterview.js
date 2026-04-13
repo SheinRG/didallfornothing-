@@ -1,6 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+import { authFetch } from '../utils/authFetch';
 
 /**
  * useInterview — manages interview flow state for a given sessionId.
@@ -28,9 +27,8 @@ export default function useInterview(sessionId) {
       setLoading(true);
       setError(null);
       try {
-        const response = await fetch(`${API_BASE_URL}/sessions/${sessionId}`, {
-          credentials: 'include',
-        });
+        const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+        const response = await authFetch(`${API_BASE_URL}/sessions/${sessionId}`);
         const data = await response.json();
         if (!response.ok) throw new Error(data.message || 'Failed to load session');
         
