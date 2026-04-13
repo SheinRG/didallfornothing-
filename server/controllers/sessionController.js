@@ -124,12 +124,10 @@ export const getFollowUp = async (req, res) => {
     const personality = session ? session.personality : 'standard';
 
     const followup = await generateFollowUp(question, answer, personality);
-    
-    // Let's persist it to the session question array so feedback analysis sees it
-    if (session) {
-      session.questions.push(followup);
-      await session.save();
-    }
+
+    // Don't persist to DB here — the frontend manages question ordering
+    // (splicing follow-ups into the correct position). The final ordered
+    // questions array is sent on interview submission.
 
     res.status(200).json({ followup });
   } catch (err) {

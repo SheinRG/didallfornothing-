@@ -8,7 +8,7 @@ import { analyseAnswer } from '../services/groqService.js';
  */
 export const createFeedback = async (req, res) => {
   try {
-    const { sessionId, answers, snapshots } = req.body;
+    const { sessionId, answers, questions: submittedQuestions, snapshots } = req.body;
 
     if (!sessionId || !answers) {
       return res.status(400).json({ message: 'Session ID and answers are required' });
@@ -17,15 +17,23 @@ export const createFeedback = async (req, res) => {
     const session = await Session.findById(sessionId);
     if (!session) return res.status(404).json({ message: 'Session not found' });
 
-    // Save the answers to the session
+    // Use the frontend's questions array (correct order with follow-ups
+    // spliced in and reaction text prepended) if provided,
+    // otherwise fall back to the DB's questions.
+    const orderedQuestions = (submittedQuestions && submittedQuestions.length > 0)
+      ? submittedQuestions
+      : session.questions;
+
+    // Save both the correctly-ordered questions and answers to the session
+    session.questions = orderedQuestions;
     session.answers = answers;
     await session.save();
 
     // Combine all questions and answers into a transcript
     let transcript = '';
-    for (let i = 0; i < session.questions.length; i++) {
+    for (let i = 0; i < orderedQuestions.length; i++) {
       const ans = answers[i] && answers[i].trim().length > 0 ? answers[i] : '[NO ANSWER PROVIDED BY CANDIDATE / SKIPPED]';
-      transcript += `Q: ${session.questions[i]}\nA: ${ans}\n\n`;
+      transcript += `Q: ${orderedQuestions[i]}\nA: ${ans}\n\n`;
     }
 
     const analysis = await analyseAnswer(transcript, snapshots);

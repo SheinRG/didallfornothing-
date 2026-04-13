@@ -163,7 +163,7 @@ export default function InterviewPage() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
-          body: JSON.stringify({ sessionId, answers: fullAnswers, snapshots: updatedSnapshots }),
+          body: JSON.stringify({ sessionId, answers: fullAnswers, questions, snapshots: updatedSnapshots }),
         });
 
         if (!response.ok) throw new Error('Failed to generate feedback');
