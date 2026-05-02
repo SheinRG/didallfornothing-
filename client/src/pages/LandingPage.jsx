@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, useAnimation } from 'framer-motion';
 import Navbar from '../components/layout/Navbar';
@@ -10,6 +11,24 @@ import image3 from '../assets/image_3.jpg';
 
 export default function LandingPage() {
   const controls = useAnimation();
+  const isDraggingRef = useRef(false);
+
+  useEffect(() => {
+    // Initial entrance — settle from random offsets
+    controls.start({
+      x: 0,
+      y: 0,
+      rotate: 0,
+      opacity: 1,
+      scale: 1,
+      transition: { 
+        duration: 1.3,
+        ease: "easeOut",
+        delay: 0.4 
+      }
+    });
+  }, [controls]);
+
   const toggleTheme = () => {
     const isLight = document.documentElement.classList.contains('theme-light');
     if (!isLight) {
@@ -116,15 +135,21 @@ export default function LandingPage() {
 
             {/* Right — Bento Preview Container */}
             <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.4, duration: 0.8 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 1 }}
               className="hidden lg:block relative z-10 w-[540px] aspect-square ml-auto bg-white/[0.03] border border-white/10 theme-light:bg-zinc-100/60 theme-light:border-zinc-200/60 backdrop-blur-3xl rounded-[2rem] p-4 shadow-2xl"
             >
               <div className="grid grid-cols-12 grid-rows-4 gap-3 h-full">
 
-                {/* ROW 1 */}
-                <motion.div animate={controls} drag whileDrag={{ scale: 1.05, zIndex: 50, cursor: 'grabbing' }} whileHover={{ scale: 1.02 }} className="col-span-8 bg-surface-container-high border border-white/10 rounded-2xl p-6 shadow-lg flex flex-col justify-center theme-light:bg-white theme-light:border-black/5">
+                <motion.div
+                  initial={{ x: 600, y: -400, rotate: 45, opacity: 0 }}
+                  animate={controls}
+                  drag
+                  whileDrag={{ scale: 1.05, zIndex: 50, cursor: 'grabbing' }}
+                  whileHover={{ scale: 1.02 }}
+                  className="col-span-8 bg-surface-container-high border border-white/10 rounded-2xl p-6 shadow-lg flex flex-col justify-center theme-light:bg-white theme-light:border-black/5"
+                >
                   <div className="flex gap-1.5 mb-4">
                     <div className="w-2.5 h-2.5 rounded-full bg-[#EF4444]" />
                     <div className="w-2.5 h-2.5 rounded-full bg-[#F59E0B]" />
@@ -138,7 +163,15 @@ export default function LandingPage() {
                   </pre>
                 </motion.div>
 
-                <motion.div animate={controls} drag whileDrag={{ scale: 1.05, zIndex: 50, cursor: 'grabbing' }} whileHover={{ scale: 1.02 }} className="col-span-4 bg-surface-container-high border border-white/10 rounded-2xl p-5 shadow-lg flex flex-col items-center justify-center theme-light:bg-white theme-light:border-black/5">
+
+                <motion.div
+                  initial={{ x: -600, y: -300, rotate: -45, opacity: 0 }}
+                  animate={controls}
+                  drag
+                  whileDrag={{ scale: 1.05, zIndex: 50, cursor: 'grabbing' }}
+                  whileHover={{ scale: 1.02 }}
+                  className="col-span-4 bg-surface-container-high border border-white/10 rounded-2xl p-5 shadow-lg flex flex-col items-center justify-center theme-light:bg-white theme-light:border-black/5"
+                >
                   <div className="relative w-14 h-14 flex items-center justify-center mb-2">
                     <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
                       <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" strokeWidth="12" className="text-white/5 theme-light:text-zinc-100" />
@@ -149,8 +182,16 @@ export default function LandingPage() {
                   <span className="text-[10px] font-bold text-[#888] theme-light:text-zinc-500 uppercase tracking-widest text-center mt-1">Stability</span>
                 </motion.div>
 
+
                 {/* ROW 2 */}
-                <motion.div animate={controls} drag whileDrag={{ scale: 1.05, zIndex: 50, cursor: 'grabbing' }} whileHover={{ scale: 1.02 }} className="col-span-6 bg-surface-container-high border border-white/10 rounded-2xl p-6 shadow-lg flex flex-col justify-center theme-light:bg-white theme-light:border-black/5">
+                <motion.div
+                  initial={{ x: 700, y: 300, rotate: 30, opacity: 0 }}
+                  animate={controls}
+                  drag
+                  whileDrag={{ scale: 1.05, zIndex: 50, cursor: 'grabbing' }}
+                  whileHover={{ scale: 1.02 }}
+                  className="col-span-6 bg-surface-container-high border border-white/10 rounded-2xl p-6 shadow-lg flex flex-col justify-center theme-light:bg-white theme-light:border-black/5"
+                >
                   <div className="flex items-center gap-2 mb-4">
                     <div className="w-1.5 h-5 bg-[#E8563B] rounded-full" />
                     <span className="text-[11px] tracking-[0.2em] font-bold text-[#888] theme-light:text-zinc-500 uppercase">Analysis</span>
@@ -173,13 +214,29 @@ export default function LandingPage() {
                   </div>
                 </motion.div>
 
-                <motion.div animate={controls} drag whileDrag={{ scale: 1.05, zIndex: 50, cursor: 'grabbing' }} whileHover={{ scale: 1.02 }} className="col-span-6 bg-surface-container-high border border-white/10 rounded-2xl p-6 shadow-lg flex flex-col justify-center theme-light:bg-white theme-light:border-black/5">
+                <motion.div
+                  initial={{ x: -700, y: 400, rotate: -30, opacity: 0 }}
+                  animate={controls}
+                  drag
+                  whileDrag={{ scale: 1.05, zIndex: 50, cursor: 'grabbing' }}
+                  whileHover={{ scale: 1.02 }}
+                  className="col-span-6 bg-surface-container-high border border-white/10 rounded-2xl p-6 shadow-lg flex flex-col justify-center theme-light:bg-white theme-light:border-black/5"
+                >
                   <div className="text-[10px] font-bold text-emerald-400 theme-light:text-emerald-700 uppercase tracking-[0.2em] mb-1">Target Path</div>
                   <div className="text-[15px] font-bold text-white theme-light:text-zinc-900">Senior Software Engineer</div>
                 </motion.div>
 
+
+
                 {/* ROW 3 */}
-                <motion.div animate={controls} drag whileDrag={{ scale: 1.05, zIndex: 50, cursor: 'grabbing' }} whileHover={{ scale: 1.02 }} className="col-span-7 bg-surface-container-high border border-white/10 rounded-2xl p-5 flex items-center gap-4 shadow-lg theme-light:bg-white theme-light:border-black/5">
+                <motion.div
+                  initial={{ x: 500, y: 600, rotate: -15, opacity: 0 }}
+                  animate={controls}
+                  drag
+                  whileDrag={{ scale: 1.05, zIndex: 50, cursor: 'grabbing' }}
+                  whileHover={{ scale: 1.02 }}
+                  className="col-span-7 bg-surface-container-high border border-white/10 rounded-2xl p-5 flex items-center gap-4 shadow-lg theme-light:bg-white theme-light:border-black/5"
+                >
                   <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 bg-[#333]">
                     <img src={image3} alt="User" className="w-full h-full object-cover" />
                   </div>
@@ -190,7 +247,20 @@ export default function LandingPage() {
                   <div className="ml-auto w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.4)] mr-2" />
                 </motion.div>
 
-                <motion.div animate={controls} drag whileDrag={{ scale: 1.05, zIndex: 50, cursor: 'grabbing' }} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.95 }} onClick={toggleTheme} className="col-span-5 bg-surface-container-high border border-white/10 rounded-2xl p-4 flex items-center justify-center gap-4 shadow-lg cursor-pointer transition-colors hover:border-[#E8563B] theme-light:bg-white theme-light:border-black/5">
+                <motion.div
+                  initial={{ x: -800, y: 500, rotate: 25, opacity: 0 }}
+                  animate={controls}
+                  drag
+                  onDragStart={() => { isDraggingRef.current = true; }}
+                  onDragEnd={() => { setTimeout(() => { isDraggingRef.current = false; }, 100); }}
+                  whileDrag={{ scale: 1.05, zIndex: 50, cursor: 'grabbing' }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.95 }}
+                  onTap={() => {
+                    if (!isDraggingRef.current) toggleTheme();
+                  }}
+                  className="col-span-5 bg-surface-container-high border border-white/10 rounded-2xl p-4 flex items-center justify-center gap-4 shadow-lg cursor-pointer transition-colors hover:border-[#E8563B] theme-light:bg-white theme-light:border-black/5"
+                >
                   <div className="w-11 h-11 rounded-full bg-[#E8563B] flex items-center justify-center text-white flex-shrink-0">
                     <span className="material-symbols-outlined text-[20px]">light_mode</span>
                   </div>
@@ -200,12 +270,12 @@ export default function LandingPage() {
                   </div>
                 </motion.div>
 
+
                 {/* ROW 4 */}
-                {/* PUSH / ASSEMBLE BUTTON */}
                 <motion.div
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  onClick={() => controls.start({ x: 0, y: 0, transition: { type: "spring", stiffness: 200, damping: 20 } })}
+                  onClick={() => controls.start({ x: 0, y: 0, rotate: 0, scale: 1, transition: { type: "spring", stiffness: 200, damping: 20 } })}
                   className="col-span-4 bg-surface-container-high border border-white/10 rounded-2xl p-5 shadow-[0_0_20px_rgba(232,86,59,0.2)] flex flex-col items-center justify-center gap-2 cursor-pointer transition-colors hover:border-[#E8563B] theme-light:bg-white theme-light:border-black/5 z-50 relative"
                 >
                   <BrainCircuit className="text-[#E8563B]" size={22} />
@@ -215,12 +285,27 @@ export default function LandingPage() {
                   </div>
                 </motion.div>
 
-                <motion.div animate={controls} drag whileDrag={{ scale: 1.05, zIndex: 50, cursor: 'grabbing' }} whileHover={{ scale: 1.02 }} className="col-span-5 bg-surface-container-high border border-white/10 rounded-2xl p-4 flex flex-col items-center justify-center gap-2 shadow-lg theme-light:bg-white theme-light:border-black/5">
-                  <div className="w-3 h-3 rounded-full bg-red-500 animate-pulse shadow-[0_0_10px_rgba(239,68,68,0.5)] mb-1" />
+                <motion.div
+                  initial={{ x: 300, y: 700, rotate: 10, opacity: 0 }}
+                  animate={controls}
+                  drag
+                  whileDrag={{ scale: 1.05, zIndex: 50, cursor: 'grabbing' }}
+                  whileHover={{ scale: 1.02 }}
+                  className="col-span-5 bg-surface-container-high border border-white/10 rounded-2xl p-4 flex flex-col items-center justify-center gap-2 shadow-lg theme-light:bg-white theme-light:border-black/5"
+                >
+                  <div className="w-3 h-3 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)] mb-1" />
                   <span className="text-[11px] font-bold tracking-[0.15em] text-white theme-light:text-zinc-900 uppercase">Input Active</span>
                 </motion.div>
 
-                <motion.div animate={controls} drag whileDrag={{ scale: 1.05, zIndex: 50, cursor: 'grabbing' }} whileHover={{ scale: 1.02 }} className="col-span-3 bg-surface-container-high border border-white/10 rounded-2xl p-4 flex flex-col items-center justify-center shadow-lg theme-light:bg-white theme-light:border-black/5">
+
+                <motion.div
+                  initial={{ x: -400, y: 800, rotate: -20, opacity: 0 }}
+                  animate={controls}
+                  drag
+                  whileDrag={{ scale: 1.05, zIndex: 50, cursor: 'grabbing' }}
+                  whileHover={{ scale: 1.02 }}
+                  className="col-span-3 bg-surface-container-high border border-white/10 rounded-2xl p-4 flex flex-col items-center justify-center shadow-lg theme-light:bg-white theme-light:border-black/5"
+                >
                   <div className="text-[8px] font-bold text-[#888] theme-light:text-zinc-500 tracking-[0.25em] uppercase mb-2">Voice</div>
                   <div className="flex gap-[3px] items-center h-4">
                     {[1, 0.6, 1.4, 0.8, 1.2, 0.5, 0.9].map((s, i) => (
@@ -237,6 +322,7 @@ export default function LandingPage() {
 
               </div>
             </motion.div>
+
 
             {/* Dot grid decoration */}
             <motion.div
