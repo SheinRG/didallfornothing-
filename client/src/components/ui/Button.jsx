@@ -2,11 +2,11 @@ import { motion } from 'framer-motion';
 
 const variants = {
   primary:
-    'bg-gradient-to-b from-[#E8563B] to-[#C23C23] text-white tracking-widest font-bold border-none transition-all',
+    'btn-primary bg-gradient-to-b from-[#E8563B] to-[#C23C23] text-white tracking-widest font-bold border-none transition-all',
   secondary:
-    'bg-[#1C1C1C] text-white border border-[#333] tracking-[0.12em] font-bold transition-all',
+    'btn-secondary bg-[#1C1C1C] text-white border border-[#333] tracking-[0.12em] font-bold transition-all',
   danger:
-    'bg-red-500 text-white border-none font-bold',
+    'btn-danger bg-red-500 text-white border-none font-bold',
 };
 
 export default function Button({ children, variant = 'primary', className = '', ...props }) {

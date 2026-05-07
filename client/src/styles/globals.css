@@ -158,4 +158,18 @@
   .theme-light .bg-\[\#131313\]\/70 {
     background-color: rgba(248,249,250,0.85) !important;
   }
+  /* Button light theme overrides - apply simple orange and white text to all orange buttons */
+  .theme-light .btn-primary,
+  .theme-light button.bg-\[\#e04f32\],
+  .theme-light a.bg-\[\#e04f32\],
+  .theme-light button.bg-\[\#E8563B\],
+  .theme-light a.bg-\[\#E8563B\],
+  .theme-light button.bg-\[\#ff5543\],
+  .theme-light a.bg-\[\#ff5543\],
+  .theme-light button.bg-primary-container,
+  .theme-light a.bg-primary-container {
+    background: #E8563B !important;
+    background-image: none !important;
+    color: #ffffff !important;
+  }
 }
